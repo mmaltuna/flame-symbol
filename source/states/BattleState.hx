@@ -284,7 +284,6 @@ class BattleState extends FlxState {
 			oldPos.x = selectedUnit.pos.x;
 			oldPos.y = selectedUnit.pos.y;
 
-			selectedUnit.status = UnitStatus.STATUS_MOVING;
 			selectedUnit.move(posX, posY, pathOptions.bestPaths.get(MapUtils.coordsToIndex(posX, posY)), onMoveEnd);
 
 		} else if (selectedUnit != null && selectedUnit.status == UnitStatus.STATUS_MOVED) {
@@ -340,7 +339,7 @@ class BattleState extends FlxState {
 			cursor.pos.y = oldPos.y;
 			centerCameraOnCursor();
 
-			selectedUnit.status = UnitStatus.STATUS_AVAILABLE;
+			selectedUnit.deselect();
 			selectedUnit = null;
 
 			terrainInfo.show();
@@ -352,7 +351,7 @@ class BattleState extends FlxState {
 			cursor.pos.x = oldPos.x;
 			cursor.pos.y = oldPos.y;
 			selectedUnit.move(oldPos.x, oldPos.y, null);
-			selectedUnit.status = UnitStatus.STATUS_SELECTED;
+			selectedUnit.select();
 
 			drawMovementRange();
 

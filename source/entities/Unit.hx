@@ -1,5 +1,6 @@
 package entities;
 
+import flixel.FlxObject;
 import flixel.util.FlxColor;
 import flixel.util.FlxPath;
 import flixel.math.FlxPoint;
@@ -22,6 +23,8 @@ class Unit extends Entity {
 	public var exp: Int;
 
 	public var pos: TilePoint;
+	public var offsetX: Int;	// horizontal offset from the upper left corner of the tile
+	public var offsetY: Int;	// vertical offset from the upper left corner of the tile
 
 	public var atkRangeMin: Int;
 	public var atkRangeMax: Int;
@@ -37,8 +40,23 @@ class Unit extends Entity {
 	public var items: Array<Item>;
 	public var equippedWeapon: Weapon;
 
+	public var activePath: Path;
+
 	public function new(posX: Int, posY: Int, colour: FlxColor) {
-		super(posX * ViewPort.tileSize, posY * ViewPort.tileSize);
+		offsetX = -2;
+		offsetY = -4;
+
+		super(posX * ViewPort.tileSize + offsetX, posY * ViewPort.tileSize + offsetY);
+		loadGraphic("assets/images/sword-warrior-red.png", true, 20, 20);
+
+		setFacingFlip(FlxObject.LEFT, false, false);
+		setFacingFlip(FlxObject.RIGHT, true, false);
+
+		animation.add("idle", [12, 13], 2, true);
+		animation.add("walk-down", [0, 1, 2, 3], 6, true);
+		animation.add("walk-lr", [4, 5, 6, 7], 6, true);
+		animation.add("walk-up", [8, 9, 10, 11], 6, true);
+		animation.add("selected", [14, 15, 16, 15], 6, true);
 
 		cs = new UnitStats();
 		os = new UnitStats();
@@ -53,10 +71,10 @@ class Unit extends Entity {
 		items = new Array<Item>();
 		equippedWeapon = null;
 
-		status = UnitStatus.STATUS_AVAILABLE;
+		enable();
 		movementType = UnitMovementType.ONFOOT;
 
-		makeGraphic(ViewPort.tileSize, ViewPort.tileSize, colour);
+		//makeGraphic(ViewPort.tileSize, ViewPort.tileSize, colour);
 	}
 
 	public function useItem(item: Item) {
@@ -76,19 +94,30 @@ class Unit extends Entity {
 	}
 
 	public function select(): Bool {
-		if (status == UnitStatus.STATUS_AVAILABLE) {
+		if (status == UnitStatus.STATUS_AVAILABLE || status == UnitStatus.STATUS_MOVED) {
+			animation.play("selected");
 			status = UnitStatus.STATUS_SELECTED;
 			return true;
 		}
 		return false;
 	}
 
+	public function deselect() {
+		if (status == UnitStatus.STATUS_SELECTED) {
+			animation.play("idle");
+			status = UnitStatus.STATUS_AVAILABLE;
+		}
+	}
+
 	public function enable() {
+		animation.play("idle");
 		status = UnitStatus.STATUS_AVAILABLE;
 		color = 0xffffff;
 	}
 
 	public function disable() {
+		animation.finish();
+		animation.frameIndex = 12;
 		status = UnitStatus.STATUS_DONE;
 		color = 0x555555;
 	}
@@ -98,6 +127,13 @@ class Unit extends Entity {
 		pos.y = posY;
 
 		if (path != null) {
+			status = UnitStatus.STATUS_MOVING;
+
+			if (activePath != null)
+				activePath.destroy();
+
+			activePath = path;
+
 			if (this.path != null) {
 				for (step in this.path.nodes)
 					step.destroy();
@@ -105,25 +141,54 @@ class Unit extends Entity {
 
 			var pathArray = new Array<FlxPoint>();
 			for (step in path.path)
-				pathArray.push(new FlxPoint(step.x * ViewPort.tileSize + ViewPort.tileSize / 2, step.y * ViewPort.tileSize + ViewPort.tileSize / 2));
+				pathArray.push(new FlxPoint(step.x * ViewPort.tileSize + ViewPort.tileSize / 2 + offsetX,
+					step.y * ViewPort.tileSize + ViewPort.tileSize / 2 + offsetY));
 
 			this.path = new FlxPath(pathArray);
 
 			if (callback != null)
 				this.path.onComplete = callback;
 
+			animation.play("walk-lr");
 			this.path.start(200);
 
 			for (step in pathArray)
 				step.destroy();
 
 		} else {
-			this.x = pos.x * ViewPort.tileSize;
-			this.y = pos.y * ViewPort.tileSize;
+			this.x = pos.x * ViewPort.tileSize + offsetX;
+			this.y = pos.y * ViewPort.tileSize + offsetY;
 
 			if (callback != null)
 				callback(null);
 		}
+	}
+
+	override public function update(elapsed: Float) {
+		if (status == UnitStatus.STATUS_MOVING) {
+			var nodeIndex = this.path.nodeIndex;
+			var changedFacing = false;
+
+			if (nodeIndex > 0 && nodeIndex < activePath.path.length) {
+				if (facing != activePath.facing[nodeIndex - 1]) {
+					facing = activePath.facing[nodeIndex - 1];
+					changedFacing = true;
+				}
+			} else if (nodeIndex == 0) {
+				facing = activePath.facing[nodeIndex];
+				changedFacing = true;
+			}
+
+			if (changedFacing && (facing == FlxObject.LEFT || facing == FlxObject.RIGHT)) {
+				animation.play("walk-lr");
+			} else if (changedFacing && facing == FlxObject.UP) {
+				animation.play("walk-up");
+			} else if (changedFacing && facing == FlxObject.DOWN) {
+				animation.play("walk-down");
+			}
+		}
+
+		super.update(elapsed);
 	}
 
 	public function getPhysicalPower(): Int {

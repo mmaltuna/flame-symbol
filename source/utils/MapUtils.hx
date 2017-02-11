@@ -1,5 +1,6 @@
 package utils;
 
+import flixel.FlxObject;
 import flixel.FlxSprite;
 import flixel.tile.FlxTilemap;
 
@@ -30,7 +31,7 @@ class MapUtils {
 		var startPoint = unit.pos;
 
 		var currentPath: Path = new Path();
-		currentPath.path.push(startPoint);
+		currentPath.add(startPoint, 0);
 		openPaths.push(currentPath);
 		pathOptions.nodes.add(startPoint);
 
@@ -51,8 +52,7 @@ class MapUtils {
 					// Add the first neighbour to the current path if it's reachable
 					if (!assignedCurrentPath && currentPath.cost + costToNeighbour <= unit.cs.mov) {
 						newStepCost = costToNeighbour;
-						currentPath.cost += newStepCost;
-						currentPath.path.push(neighbour);
+						currentPath.add(neighbour, newStepCost);
 						pathOptions.nodes.add(neighbour);
 						pathOptions.addToBestPaths(currentPath);
 
@@ -62,12 +62,10 @@ class MapUtils {
 						// For the rest of the neighbours, clone the previous path and add the next neighbour to it if it's reachable
 						// Store these alternative paths so they can be followed later
 						var openPath = Path.clone(currentPath);
-						openPath.path.pop();
-						openPath.cost -= newStepCost;
+						openPath.removeLast(newStepCost);
 
 						if (openPath.cost + costToNeighbour <= unit.cs.mov) {
-							openPath.cost += costToNeighbour;
-							openPath.path.push(neighbour);
+							openPath.add(neighbour, costToNeighbour);
 							pathOptions.nodes.add(neighbour);
 							openPaths.push(openPath);
 							pathOptions.addToBestPaths(openPath);
@@ -334,10 +332,12 @@ class PathOptions {
 
 class Path {
 	public var path: Array<TilePoint>;
+	public var facing: Array<Int>;
 	public var cost: Int;
 
 	public function new() {
 		path = new Array<TilePoint>();
+		facing = new Array<Int>();
 		cost = 0;
 	}
 
@@ -361,10 +361,48 @@ class Path {
 		return containsInt(Std.int(posX), Std.int(posY));
 	}
 
+	public function add(node: TilePoint, stepCost: Int) {
+		var lastNode = getLast();
+
+		path.push(node);
+		cost += stepCost;
+
+		if (lastNode != null) {
+			if (lastNode.x > node.x && lastNode.y == node.y) {
+				facing.push(FlxObject.LEFT);
+			} else if (lastNode.x < node.x && lastNode.y == node.y) {
+				facing.push(FlxObject.RIGHT);
+			} else if (lastNode.x == node.x && lastNode.y > node.y) {
+				facing.push(FlxObject.UP);
+			} else if (lastNode.x == node.x && lastNode.y < node.y) {
+				facing.push(FlxObject.DOWN);
+			}
+		}
+	}
+
+	public function removeLast(stepCost) {
+		cost -= stepCost;
+		path.pop();
+
+		if (facing.length > 0)
+			facing.pop();
+	}
+
+	public function getLast(): TilePoint {
+		if (path.length > 0)
+			return path[path.length - 1];
+
+		return null;
+	}
+
 	public static function clone(path: Path) {
 		var p: Path = new Path();
 		for (step in path.path)
 			p.path.push(new TilePoint(step.x, step.y));
+
+		for (facing in path.facing)
+			p.facing.push(facing);
+
 		p.cost = path.cost;
 
 		return p;
