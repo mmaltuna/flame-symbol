@@ -23,6 +23,10 @@ class Utils {
 		return a < 0 ? -a : a;
 	}
 
+	public static function boolToInt(b: Bool): Int {
+		return b ? 1 : 0;
+	}
+
 	public static function clearSpriteGroup(group: FlxTypedGroup<FlxSprite>) {
 		group.forEach(function(member) { member.destroy(); });
 	}

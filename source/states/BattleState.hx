@@ -23,6 +23,7 @@ import utils.MapUtils;
 import utils.Utils;
 import utils.KeyboardUtils;
 import utils.data.TilePoint;
+import utils.data.Set;
 import utils.Level;
 
 import entities.Weapon;
@@ -54,7 +55,7 @@ class BattleState extends FlxState {
 	public var movementRange: FlxTypedGroup<FlxSprite>;
 	public var attackRange: FlxTypedGroup<FlxSprite>;
 	public var pathOptions: utils.PathOptions;
-	public var tilesInAttackRange: Array<TilePoint>;
+	public var tilesInAttackRange: Set<TilePoint>;
 	public var unitsInAttackRange: Array<Unit>;
 
 	private var oldPos: TilePoint;
@@ -479,17 +480,60 @@ class BattleState extends FlxState {
 
 		pathOptions = MapUtils.findPathOptions(this, selectedUnit);
 		for (tile in pathOptions.nodes.getAll()) {
-			movementRange.add(new FlxSprite(tile.x * 16 + 1, tile.y * 16 + 1).makeGraphic(14, 14, 0x33FFFF00));
+			var tileGraphic = new FlxSprite(tile.x * 16, tile.y * 16);
+			tileGraphic.loadGraphic("assets/images/area-tiles-blue.png", true, 16, 16);
+
+			var neighbour: TilePoint = new TilePoint(tile.x, tile.y - 1);
+			var hasTileUp: Int = Utils.boolToInt(!pathOptions.nodes.contains(neighbour));
+			neighbour.y = tile.y + 1;
+			var hasTileDown: Int = Utils.boolToInt(!pathOptions.nodes.contains(neighbour));
+			neighbour.x = tile.x - 1;
+			neighbour.y = tile.y;
+			var hasTileLeft: Int = Utils.boolToInt(!pathOptions.nodes.contains(neighbour));
+			neighbour.x = tile.x + 1;
+			var hasTileRight: Int = Utils.boolToInt(!pathOptions.nodes.contains(neighbour));
+
+			var frameIndex: Int = 0;
+			frameIndex |= hasTileRight;
+			frameIndex |= hasTileLeft << 1;
+			frameIndex |= hasTileDown << 2;
+			frameIndex |= hasTileUp << 3;
+
+			tileGraphic.animation.frameIndex = frameIndex;
+			tileGraphic.alpha = 0.6;
+			movementRange.add(tileGraphic);
 		}
+
+		getAttackRange(selectedUnit, pathOptions.nodes);
+		drawAttackRange();
 	}
 
 	public function drawAttackRange() {
 		Utils.clearSpriteGroup(attackRange);
 
-		for (tile in tilesInAttackRange) {
-			attackRange.add(new FlxSprite(Std.int(tile.x) * ViewPort.tileSize + 1,
-				Std.int(tile.y) * ViewPort.tileSize + 1)
-				.makeGraphic(14, 14, 0x55FF0000));
+		for (tile in tilesInAttackRange.getAll()) {
+			var tileGraphic = new FlxSprite(tile.x * 16, tile.y * 16);
+			tileGraphic.loadGraphic("assets/images/area-tiles-red.png", true, 16, 16);
+
+			var neighbour: TilePoint = new TilePoint(tile.x, tile.y - 1);
+			var hasTileUp: Int = Utils.boolToInt(!tilesInAttackRange.contains(neighbour));
+			neighbour.y = tile.y + 1;
+			var hasTileDown: Int = Utils.boolToInt(!tilesInAttackRange.contains(neighbour));
+			neighbour.x = tile.x - 1;
+			neighbour.y = tile.y;
+			var hasTileLeft: Int = Utils.boolToInt(!tilesInAttackRange.contains(neighbour));
+			neighbour.x = tile.x + 1;
+			var hasTileRight: Int = Utils.boolToInt(!tilesInAttackRange.contains(neighbour));
+
+			var frameIndex: Int = 0;
+			frameIndex |= hasTileRight;
+			frameIndex |= hasTileLeft << 1;
+			frameIndex |= hasTileDown << 2;
+			frameIndex |= hasTileUp << 3;
+
+			tileGraphic.animation.frameIndex = frameIndex;
+			tileGraphic.alpha = 0.6;
+			movementRange.add(tileGraphic);
 		}
 	}
 
@@ -562,23 +606,36 @@ class BattleState extends FlxState {
 		return unit;
 	}
 
-	public function getAttackRange(unit: Unit): Array<TilePoint> {
+	public function getAttackRange(unit: Unit, reachableTiles: Set<TilePoint> = null): Set<TilePoint> {
 		if (tilesInAttackRange == null)
-			tilesInAttackRange = new Array<TilePoint>();
+			tilesInAttackRange = new Set<TilePoint>(function(a: TilePoint, b: TilePoint): Bool {
+				return a.x == b.x && a.y == b.y;
+			});
 
-		Utils.clearPointArray(tilesInAttackRange);
-		Utils.clearSpriteGroup(attackRange);
+		if (reachableTiles == null) {
+			reachableTiles = new Set<TilePoint>(function name(a: TilePoint, b: TilePoint): Bool {
+				return a.x == b.x && a.y == b.y;
+			});
 
-		for (i in -unit.atkRangeMax ... unit.atkRangeMax + 1) {
-			for (j in -unit.atkRangeMax ... unit.atkRangeMax + 1) {
-				var distance = Utils.abs(i) + Utils.abs(j);
-				var newX = unit.pos.x + i;
-				var newY = unit.pos.y + j;
+			reachableTiles.add(unit.pos);
+		}
 
-				if (distance <= unit.atkRangeMax && distance >= unit.atkRangeMin &&
-					newX >= 0 && newX < level.width && newY >= 0 && newY < level.height) {
+		tilesInAttackRange.clear();
 
-					tilesInAttackRange.push(new TilePoint(newX, newY));
+		//Utils.clearSpriteGroup(attackRange);
+
+		for (tile in reachableTiles.getAll()) {
+			for (i in -unit.atkRangeMax ... unit.atkRangeMax + 1) {
+				for (j in -unit.atkRangeMax ... unit.atkRangeMax + 1) {
+					var distance = Utils.abs(i) + Utils.abs(j);
+					var newTile: TilePoint = new TilePoint(tile.x + i, tile.y + j);
+
+					if (distance <= unit.atkRangeMax && distance >= unit.atkRangeMin &&
+						newTile.x >= 0 && newTile.x < level.width && newTile.y >= 0 &&
+						newTile.y < level.height && !reachableTiles.contains(newTile)) {
+
+						tilesInAttackRange.add(newTile);
+					}
 				}
 			}
 		}
@@ -590,7 +647,7 @@ class BattleState extends FlxState {
 		var tilesInRange = getAttackRange(unit);
 		var enemiesInRange = new Array<Unit>();
 
-		for (tile in tilesInRange) {
+		for (tile in tilesInRange.getAll()) {
 			var index = MapUtils.coordsToIndex(Std.int(tile.x), Std.int(tile.y));
 			if (enemy.exists(index))
 				enemiesInRange.push(enemy.get(index));

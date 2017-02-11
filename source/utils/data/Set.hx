@@ -34,4 +34,8 @@ class Set<T> {
 		for (elem in array)
 			callback(elem);
 	}
+
+	public function clear() {
+		array.splice(0, array.length);
+	}
 }
