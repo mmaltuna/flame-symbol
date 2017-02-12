@@ -12,6 +12,10 @@ class TilePoint {
 		this.y = y;
 	}
 
+	public static function equals(a: TilePoint, b: TilePoint): Bool {
+		return a.x == b.x && a.y == b.y;
+	}
+
 	public static function toFlxPoint(tilePoint: TilePoint): FlxPoint {
 		return new FlxPoint(tilePoint.x, tilePoint.y);
 	}

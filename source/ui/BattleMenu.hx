@@ -83,33 +83,6 @@ class BattleMenu extends FlxTypedGroup<FlxSprite> {
 		background.replaceColor(FlxColor.WHITE, 0xCC000088);
 	}
 
-	override public function update(elapsed: Float) {
-		if (FlxG.keys.justPressed.Z) {
-			var posX = battle.cursor.pos.x;
-			var posY = battle.cursor.pos.y;
-
-			if (battle.selectedUnit == null && !this.visible &&
-				!battle.army.exists(MapUtils.coordsToIndex(posX, posY)) &&
-				!battle.enemy.exists(MapUtils.coordsToIndex(posX, posY))) {
-
-				updatePos();
-				battle.cursor.hide();
-				this.show();
-			} else if (battle.selectedUnit == null && this.visible) {
-				this.select();
-				this.hide();
-				battle.cursor.show(BattleCursor.STATUS_FREE);
-			}
-		}
-
-		if (FlxG.keys.justPressed.X && this.visible) {
-			this.hide();
-			battle.cursor.show(BattleCursor.STATUS_FREE);
-		}
-
-		super.update(elapsed);
-	}
-
 	private function updatePos() {
 		var cameraX = Std.int(FlxG.camera.scroll.x);
 		var cameraY = Std.int(FlxG.camera.scroll.y);
@@ -152,6 +125,7 @@ class BattleMenu extends FlxTypedGroup<FlxSprite> {
 	}
 
 	public function show() {
+		updatePos();
 		visible = true;
 	}
 
@@ -164,6 +138,8 @@ class BattleMenu extends FlxTypedGroup<FlxSprite> {
 			case "end-turn":
 				battle.onTurnEnd();
 		}
+
+		hide();
 	}
 }
 

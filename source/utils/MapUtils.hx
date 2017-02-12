@@ -304,9 +304,7 @@ class PathOptions {
 
 	public function new(mapWidth: Int) {
 		paths = new Array<Path>();
-		nodes = new Set<TilePoint>(function(a: TilePoint, b: TilePoint): Bool {
-			return a.x == b.x && a.y == b.y;
-		});
+		nodes = new Set<TilePoint>(TilePoint.equals);
 		bestPaths = new Map<Int, Path>();
 		width = mapWidth;
 	}

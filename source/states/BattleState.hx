@@ -324,6 +324,12 @@ class BattleState extends FlxState {
 				cursor.select();
 				drawMovementRange();
 			}
+		} else if (selectedUnit == null && !enemy.exists(MapUtils.coordsToIndex(posX, posY)) && !menu.visible) {
+			cursor.hide();
+			menu.show();
+		} else if (menu.visible) {
+			menu.select();
+			cursor.show(BattleCursor.STATUS_FREE);
 		}
 
 		pos = null;
@@ -366,6 +372,9 @@ class BattleState extends FlxState {
 			combatDialog.hide();
 			actionDialog.show();
 			selectedUnit.status = UnitStatus.STATUS_MOVED;
+		} else if (menu.visible) {
+			menu.hide();
+			cursor.show(BattleCursor.STATUS_FREE);
 		}
 	}
 
@@ -381,24 +390,17 @@ class BattleState extends FlxState {
 		cursor.pos.x = selectedUnit.pos.x;
 		cursor.pos.y = selectedUnit.pos.y;
 
-		if (defUnit.cs.hp == 0) {
+		if (!defUnit.isAlive()) {
 			onDeath(defUnit, enemy);
-		} else if (selectedUnit.cs.hp == 0) {
+		} else if (!selectedUnit.isAlive()) {
 			onDeath(selectedUnit, army);
+			selectedUnit = null;
 		}
 	}
 
 	public function onWait() {
 		var oldTile: Int = MapUtils.coordsToIndex(oldPos.x, oldPos.y);
-		var newTile: Int = MapUtils.coordsToIndex(selectedUnit.pos.x, selectedUnit.pos.y);
-
 		army.remove(oldTile);
-		army.set(newTile, selectedUnit);
-
-		selectedUnit.defenseBonus = MapUtils.getTerrainDefenseBonus(this, newTile);
-		selectedUnit.avoidBonus = MapUtils.getTerrainAvoidBonus(this, newTile);
-		selectedUnit.disable();
-		selectedUnit = null;
 
 		pathOptions.destroy();
 		pathOptions = null;
@@ -412,6 +414,16 @@ class BattleState extends FlxState {
 		actionDialog.hide();
 		terrainInfo.show();
 		unitInfo.show();
+
+		if (selectedUnit != null) {
+			var newTile: Int = MapUtils.coordsToIndex(selectedUnit.pos.x, selectedUnit.pos.y);
+			army.set(newTile, selectedUnit);
+
+			selectedUnit.defenseBonus = MapUtils.getTerrainDefenseBonus(this, newTile);
+			selectedUnit.avoidBonus = MapUtils.getTerrainAvoidBonus(this, newTile);
+			selectedUnit.disable();
+			selectedUnit = null;
+		}
 	}
 
 	public function onDeath(unit: Unit, army: Map<Int, Unit>) {
@@ -607,34 +619,32 @@ class BattleState extends FlxState {
 	}
 
 	public function getAttackRange(unit: Unit, reachableTiles: Set<TilePoint> = null): Set<TilePoint> {
-		if (tilesInAttackRange == null)
-			tilesInAttackRange = new Set<TilePoint>(function(a: TilePoint, b: TilePoint): Bool {
-				return a.x == b.x && a.y == b.y;
-			});
+		if (tilesInAttackRange == null) {
+			tilesInAttackRange = new Set<TilePoint>(TilePoint.equals);
+		}
 
 		if (reachableTiles == null) {
-			reachableTiles = new Set<TilePoint>(function name(a: TilePoint, b: TilePoint): Bool {
-				return a.x == b.x && a.y == b.y;
-			});
-
+			reachableTiles = new Set<TilePoint>(TilePoint.equals);
 			reachableTiles.add(unit.pos);
 		}
 
 		tilesInAttackRange.clear();
 
-		//Utils.clearSpriteGroup(attackRange);
-
 		for (tile in reachableTiles.getAll()) {
 			for (i in -unit.atkRangeMax ... unit.atkRangeMax + 1) {
 				for (j in -unit.atkRangeMax ... unit.atkRangeMax + 1) {
-					var distance = Utils.abs(i) + Utils.abs(j);
-					var newTile: TilePoint = new TilePoint(tile.x + i, tile.y + j);
+					var tileIndex = MapUtils.pointToIndex(tile);
 
-					if (distance <= unit.atkRangeMax && distance >= unit.atkRangeMin &&
-						newTile.x >= 0 && newTile.x < level.width && newTile.y >= 0 &&
-						newTile.y < level.height && !reachableTiles.contains(newTile)) {
+					if (!army.exists(tileIndex) || TilePoint.equals(tile, selectedUnit.pos)) {
+						var distance = Utils.abs(i) + Utils.abs(j);
+						var newTile: TilePoint = new TilePoint(tile.x + i, tile.y + j);
 
-						tilesInAttackRange.add(newTile);
+						if (distance <= unit.atkRangeMax && distance >= unit.atkRangeMin &&
+							newTile.x >= 0 && newTile.x < level.width && newTile.y >= 0 &&
+							newTile.y < level.height && !reachableTiles.contains(newTile)) {
+
+							tilesInAttackRange.add(newTile);
+						}
 					}
 				}
 			}
