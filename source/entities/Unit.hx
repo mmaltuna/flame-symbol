@@ -47,7 +47,10 @@ class Unit extends Entity {
 		offsetY = -4;
 
 		super(posX * ViewPort.tileSize + offsetX, posY * ViewPort.tileSize + offsetY);
-		loadGraphic("assets/images/sword-warrior-red.png", true, 20, 20);
+		if (colour == FlxColor.BLUE)
+			loadGraphic("assets/images/sword-warrior-blue.png", true, 20, 20);
+		else
+			loadGraphic("assets/images/sword-warrior-red.png", true, 20, 20);
 
 		setFacingFlip(FlxObject.LEFT, false, false);
 		setFacingFlip(FlxObject.RIGHT, true, false);
