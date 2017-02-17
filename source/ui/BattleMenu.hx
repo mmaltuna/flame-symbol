@@ -11,7 +11,6 @@ import states.BattleState;
 import utils.MapUtils;
 
 class BattleMenu extends FlxTypedGroup<FlxSprite> {
-	public static inline var bgTileSize: Int = 8;
 	public static inline var lineHeight: Int = 10;
 	public static inline var margin: Int = 2;
 

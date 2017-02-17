@@ -14,6 +14,8 @@ import entities.Weapon;
 import utils.data.TilePoint;
 import utils.tiled.TiledObject;
 
+import states.BattleState;
+
 class Unit extends Entity {
 
 	public var cs: UnitStats;	// current stats
@@ -41,6 +43,8 @@ class Unit extends Entity {
 	public var equippedWeapon: Weapon;
 
 	public var activePath: Path;
+
+	public var battle: BattleState;
 
 	public function new(posX: Int, posY: Int, colour: FlxColor) {
 		offsetX = -2;
@@ -77,7 +81,7 @@ class Unit extends Entity {
 		enable();
 		movementType = UnitMovementType.ONFOOT;
 
-		//makeGraphic(ViewPort.tileSize, ViewPort.tileSize, colour);
+		battle = BattleState.getInstance();
 	}
 
 	public function useItem(item: Item) {
@@ -144,8 +148,8 @@ class Unit extends Entity {
 
 			var pathArray = new Array<FlxPoint>();
 			for (step in path.path)
-				pathArray.push(new FlxPoint(step.x * ViewPort.tileSize + ViewPort.tileSize / 2 + offsetX,
-					step.y * ViewPort.tileSize + ViewPort.tileSize / 2 + offsetY));
+				pathArray.push(new FlxPoint(step.x * ViewPort.tileSize + ViewPort.tileSize / 2,
+					step.y * ViewPort.tileSize + (ViewPort.tileSize + offsetY) / 2));
 
 			this.path = new FlxPath(pathArray);
 
@@ -263,26 +267,40 @@ class Unit extends Entity {
 	}
 
 	public function attack(enemy: Unit) {
+		battle.battleHud.setUnit(enemy);
+		battle.battleHud.show();
+
 		if (getAccuracy(enemy) >= Std.random(100)) {
 			trace(name + " attacks!");
 			performAttack(enemy);
+			battle.battleHud.hpBar.setValue(enemy.cs.hp, function() {
+
+				trace("cosas");
+
+				if (enemy.isAlive() && enemy.canCounterattack(this) && enemy.getAccuracy(this) >= Std.random(100)) {
+					trace(enemy.name + " counters!");
+					enemy.performAttack(this);
+
+					if (enemy.repeatsAttack(this) && enemy.getAccuracy(this) >= Std.random(100)) {
+						trace(enemy.name + " counters again!");
+						enemy.performAttack(this);
+					}
+				}
+
+				if (isAlive() && repeatsAttack(enemy) && getAccuracy(enemy) >= Std.random(100)) {
+					trace(name + " attacks again!");
+					performAttack(enemy);
+
+					battle.battleHud.hpBar.setValue(enemy.cs.hp, function() {
+						battle.battleHud.hide();
+					});
+				} else {
+					battle.battleHud.hide();
+				}
+
+			});
 		} else {
 			trace(name + " misses!");
-		}
-
-		if (enemy.isAlive() && enemy.canCounterattack(this) && enemy.getAccuracy(this) >= Std.random(100)) {
-			trace(enemy.name + " counters!");
-			enemy.performAttack(this);
-
-			if (enemy.repeatsAttack(this) && enemy.getAccuracy(this) >= Std.random(100)) {
-				trace(enemy.name + " counters again!");
-				enemy.performAttack(this);
-			}
-		}
-
-		if (isAlive() && repeatsAttack(enemy) && getAccuracy(enemy) >= Std.random(100)) {
-			trace(name + " attacks again!");
-			performAttack(enemy);
 		}
 	}
 

@@ -18,6 +18,7 @@ import ui.ActionBattleDialog;
 import ui.CombatBattleDialog;
 import ui.TerrainBattleDialog;
 import ui.UnitBattleDialog;
+import ui.BattleHud;
 
 import utils.MapUtils;
 import utils.Utils;
@@ -43,6 +44,7 @@ class BattleState extends FlxState {
 	public var actionDialog: ActionBattleDialog;
 	public var combatDialog: CombatBattleDialog;
 	public var menu: BattleMenu;
+	public var battleHud: BattleHud;
 
 	public var background: FlxTilemap;
 	public var tileMap: FlxTilemap;
@@ -204,6 +206,9 @@ class BattleState extends FlxState {
 
 		menu = new BattleMenu();
 		add(menu);
+
+		battleHud = new BattleHud();
+		add(battleHud);
 
 		cursorOnFirstUnit();
 	}
