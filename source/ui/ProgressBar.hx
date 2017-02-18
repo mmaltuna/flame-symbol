@@ -3,6 +3,7 @@ package ui;
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.util.FlxColor;
+import flixel.text.FlxText;
 import flixel.group.FlxGroup;
 
 import utils.Utils;
@@ -23,10 +24,14 @@ class ProgressBar extends FlxTypedGroup<FlxSprite> {
 	private var stepSize: Int;
 
 	private var colour: FlxColor;
+	private var indicator: FlxText;
+
+	private var framesSinceLastUpdate: Int;
+	private var framesPerStep: Int;
 
 	private var callback: Void -> Void;
 
-	public function new(x: Int, y: Int, length: Int, min: Int, max: Int) {
+	public function new(x: Int, y: Int, length: Int, min: Int, max: Int, fps: Int = 1) {
 		super();
 
 		this.x = x;
@@ -50,7 +55,14 @@ class ProgressBar extends FlxTypedGroup<FlxSprite> {
 			add(step);
 		}
 
+		indicator = new FlxText(x + numberOfSteps * 2, y - 3, 20, Std.string(currentValue));
+		indicator.setFormat("assets/fonts/pixelmini.ttf", FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		add(indicator);
+
 		updateParams();
+
+		framesSinceLastUpdate = 0;
+		framesPerStep = fps;
 
 		callback = null;
 	}
@@ -63,6 +75,9 @@ class ProgressBar extends FlxTypedGroup<FlxSprite> {
 			member.x += offsetX;
 			member.y += offsetY;
 		}
+
+		this.x = x;
+		this.y = y;
 	}
 
 	public function setValue(value: Int, onValueSet: Void -> Void = null) {
@@ -73,11 +88,9 @@ class ProgressBar extends FlxTypedGroup<FlxSprite> {
 	}
 
 	public function updateParams() {
+		indicator.text = Std.string(currentValue);
 		stepSize = Utils.max(1, Std.int((maxValue - maxValue) / numberOfSteps));
-		currentStep = Std.int((currentValue - minValue) / stepSize);
-
-		trace("stepSize = " + stepSize);
-		trace("currentStep = " + currentStep);
+		currentStep = Std.int(currentValue * (numberOfSteps - 1) / (maxValue - minValue));
 
 		for (i in 0 ... members.length) {
 			members[i].animation.frameIndex = getFrameIndex(i);
@@ -87,21 +100,27 @@ class ProgressBar extends FlxTypedGroup<FlxSprite> {
 	}
 
 	override public function update(elapsed: Float) {
-		var targetStep: Int = Std.int((currentValue - minValue) / stepSize);
+		if (framesSinceLastUpdate >= framesPerStep) {
+			var targetStep: Int = Std.int(currentValue * (numberOfSteps - 1) / (maxValue - minValue));
+			var tempValue: Int = Std.int(currentStep * (maxValue - minValue) / (numberOfSteps - 1));
 
-		if (currentStep > targetStep) {
+			if (currentStep > targetStep) {
+				indicator.text = Std.string(tempValue);
+				members[currentStep].animation.frameIndex += 3;
+				currentStep--;
+			} else if (currentStep < targetStep) {
+				indicator.text = Std.string(tempValue);
+				members[currentStep].animation.frameIndex = getFrameIndex(currentStep);
+				currentStep++;
+			} else if (currentStep == targetStep && callback != null) {
+				indicator.text = Std.string(currentValue);
+				callback();
+				callback = null;
+			}
 
-			trace("targetStep = " + targetStep);
-			trace("currentStep = " + currentStep);
-
-			currentStep--;
-			members[currentStep].animation.frameIndex += 3;
-		} else if (currentStep < targetStep) {
-			members[currentStep].animation.frameIndex = getFrameIndex(currentStep);
-			currentStep++;
-		} else if (currentStep == targetStep && callback != null) {
-			callback();
-			callback = null;
+			framesSinceLastUpdate = 0;
+		} else {
+			framesSinceLastUpdate++;
 		}
 
 		super.update(elapsed);

@@ -317,19 +317,22 @@ class BattleState extends FlxState {
 			}
 
 		} else if (selectedUnit != null && selectedUnit.status == UnitStatus.STATUS_ATTACKING) {
-			onAttack();
-			onWait();
+			onAttack(onWait);
 
-		} else if (selectedUnit == null && army.exists(MapUtils.coordsToIndex(posX, posY))) {
-			terrainInfo.hide();
-			unitInfo.hide();
+		} else if (selectedUnit == null && army.exists(MapUtils.coordsToIndex(posX, posY)) && !menu.visible) {
+			var unit: Unit = army.get(MapUtils.coordsToIndex(posX, posY));
+			if (unit.select()) {
+				selectedUnit = unit;
+				terrainInfo.hide();
+				unitInfo.hide();
 
-			selectedUnit = army.get(MapUtils.coordsToIndex(posX, posY));
-			if (selectedUnit != null && selectedUnit.select()) {
 				cursor.select();
 				drawMovementRange();
+			} else {
+				cursor.hide();
+				menu.show();
 			}
-		} else if (selectedUnit == null && !enemy.exists(MapUtils.coordsToIndex(posX, posY)) && !menu.visible) {
+		} else if (selectedUnit == null && !menu.visible) {
 			cursor.hide();
 			menu.show();
 		} else if (menu.visible) {
@@ -383,24 +386,26 @@ class BattleState extends FlxState {
 		}
 	}
 
-	public function onAttack() {
+	public function onAttack(callback: Void -> Void) {
 		combatDialog.hide();
 
 		var defUnit = enemy.get(MapUtils.pointToIndex(cursor.getSelectedActiveTile()));
-		selectedUnit.attack(defUnit);
+		selectedUnit.attack(defUnit, function() {
+			Utils.clearSpriteGroup(attackRange);
+			Utils.clearPointArray(cursor.activeTiles);
 
-		Utils.clearSpriteGroup(attackRange);
-		Utils.clearPointArray(cursor.activeTiles);
+			cursor.pos.x = selectedUnit.pos.x;
+			cursor.pos.y = selectedUnit.pos.y;
 
-		cursor.pos.x = selectedUnit.pos.x;
-		cursor.pos.y = selectedUnit.pos.y;
+			if (!defUnit.isAlive()) {
+				onDeath(defUnit, enemy);
+			} else if (!selectedUnit.isAlive()) {
+				onDeath(selectedUnit, army);
+				selectedUnit = null;
+			}
 
-		if (!defUnit.isAlive()) {
-			onDeath(defUnit, enemy);
-		} else if (!selectedUnit.isAlive()) {
-			onDeath(selectedUnit, army);
-			selectedUnit = null;
-		}
+			callback();
+		});
 	}
 
 	public function onWait() {

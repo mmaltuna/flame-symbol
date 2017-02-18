@@ -266,46 +266,55 @@ class Unit extends Entity {
 		return Utils.max(getMagicalPower() - enemy.getResistancePower(), 0);
 	}
 
-	public function attack(enemy: Unit) {
-		battle.battleHud.setUnit(enemy);
+	public function attack(enemy: Unit, callback: Void -> Void) {
+		battle.battleHud.setUnits(this, enemy);
 		battle.battleHud.show();
 
 		if (getAccuracy(enemy) >= Std.random(100)) {
-			trace(name + " attacks!");
-			performAttack(enemy);
-			battle.battleHud.hpBar.setValue(enemy.cs.hp, function() {
-
-				trace("cosas");
-
+			performAttack(enemy, 2, function() {
 				if (enemy.isAlive() && enemy.canCounterattack(this) && enemy.getAccuracy(this) >= Std.random(100)) {
-					trace(enemy.name + " counters!");
-					enemy.performAttack(this);
-
-					if (enemy.repeatsAttack(this) && enemy.getAccuracy(this) >= Std.random(100)) {
-						trace(enemy.name + " counters again!");
-						enemy.performAttack(this);
-					}
-				}
-
-				if (isAlive() && repeatsAttack(enemy) && getAccuracy(enemy) >= Std.random(100)) {
-					trace(name + " attacks again!");
-					performAttack(enemy);
-
-					battle.battleHud.hpBar.setValue(enemy.cs.hp, function() {
-						battle.battleHud.hide();
+					// Defender counter attacks
+					enemy.performAttack(this, 1 ,function() {
+						if (enemy.repeatsAttack(this) && enemy.getAccuracy(this) >= Std.random(100)) {
+							// Defender attacks again
+							enemy.performAttack(this, 1, function() {
+								if (isAlive() && repeatsAttack(enemy) && getAccuracy(enemy) >= Std.random(100)) {
+									// Attacker's second attack
+									performAttack(enemy, 2, function() {
+										battle.battleHud.hide();
+										callback();
+									});
+								} else {
+									// Attacker misses second attack or can't repeat attack
+									battle.battleHud.hide();
+									callback();
+								}
+							});
+						} else {
+							// Defender misses second attack or can't repeat attack
+							battle.battleHud.hide();
+							callback();
+						}
 					});
 				} else {
+					// Defender misses counter attack or cannot counter
 					battle.battleHud.hide();
+					callback();
 				}
-
 			});
 		} else {
 			trace(name + " misses!");
+			battle.battleHud.hide();
+			callback();
 		}
 	}
 
-	private function performAttack(enemy: Unit) {
+	private function performAttack(enemy: Unit, which: Int, callback: Void -> Void) {
 		enemy.cs.hp = Utils.max(0, enemy.cs.hp - calcPhysicalDamage(enemy));
+		if (which == 1)
+			battle.battleHud.hpBar1.setValue(enemy.cs.hp, callback);
+		else
+			battle.battleHud.hpBar2.setValue(enemy.cs.hp, callback);
 	}
 
 	public function canCounterattack(enemy: Unit): Bool {

@@ -1381,7 +1381,7 @@
   </object>
  </objectgroup>
  <objectgroup name="Army 2">
-  <object id="72" name="Roger" type="Fighter" x="80" y="64" width="16" height="16">
+  <object id="72" name="Roger" type="Fighter" x="320" y="128" width="16" height="16">
    <properties>
     <property name="def" type="int" value="3"/>
     <property name="hp" type="int" value="26"/>
@@ -1394,7 +1394,7 @@
     <property name="str" type="int" value="10"/>
    </properties>
   </object>
-  <object id="75" name="RoRó" type="Fighter" x="96" y="32" width="16" height="16">
+  <object id="75" name="RoRó" type="Fighter" x="272" y="111" width="16" height="16">
    <properties>
     <property name="def" type="int" value="3"/>
     <property name="hp" type="int" value="26"/>
@@ -1407,7 +1407,7 @@
     <property name="str" type="int" value="10"/>
    </properties>
   </object>
-  <object id="76" name="Papa-Ró" type="Fighter" x="16" y="48.5" width="16" height="16">
+  <object id="76" name="Papa-Ró" type="Fighter" x="271" y="157.5" width="16" height="16">
    <properties>
     <property name="def" type="int" value="3"/>
     <property name="hp" type="int" value="26"/>

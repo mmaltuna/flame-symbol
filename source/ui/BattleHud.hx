@@ -25,27 +25,45 @@ class BattleHud extends FlxTypedGroup<FlxSprite> {
 	private var battle: BattleState;
 
 	public var background: FlxSprite;
-	public var hpBar: ProgressBar;
+	public var hpBar1: ProgressBar;
+	public var hpBar2: ProgressBar;
+	public var name1: FlxText;
+	public var name2: FlxText;
 
 	public function new() {
 		super();
 
 		battle = BattleState.getInstance();
 
-		loadBackground("assets/images/bg-menu-1.png", 70, 18);
+		loadBackground("assets/images/bg-battlehud.png", 140, 24);
 
 		x = marginLeft;
 		y = marginTop;
 
-		hpBar = new ProgressBar(x + 10, y + 7, 50, 0, 100);
-		for (member in hpBar.members)
+		hpBar1 = new ProgressBar(x + 10, y + 14, 40, 0, 100, 2);
+		for (member in hpBar1.members)
 			add(member);
+
+		hpBar2 = new ProgressBar(x + 80, y + 14, 40, 0, 100, 2);
+		for (member in hpBar2.members)
+			add(member);
+
+		name1 = new FlxText(x + 10, y + 3, 50, Std.string("name1"));
+		name1.setFormat("assets/fonts/pixelmini.ttf", FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		name1.alignment = FlxTextAlign.CENTER;
+		add(name1);
+
+		name2 = new FlxText(x + 80, y + 3, 50, Std.string("name2"));
+		name2.setFormat("assets/fonts/pixelmini.ttf", FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		name2.alignment = FlxTextAlign.CENTER;
+		add(name2);
 
 		hide();
 	}
 
 	override public function update(elapsed: Float) {
-		hpBar.update(elapsed);
+		hpBar1.update(elapsed);
+		hpBar2.update(elapsed);
 		super.update(elapsed);
 	}
 
@@ -54,7 +72,7 @@ class BattleHud extends FlxTypedGroup<FlxSprite> {
 		this.height = height;
 
 		marginLeft = Std.int((ViewPort.width - width) / 2);
-		marginTop = Std.int((ViewPort.height - height) / 2);
+		marginTop = Std.int(3 * (ViewPort.height - height) / 4);
 
 		if (background == null) {
 			background = new FlxSprite(marginLeft, marginTop);
@@ -62,7 +80,8 @@ class BattleHud extends FlxTypedGroup<FlxSprite> {
 		}
 
 		background.loadGraphic(path, width, height);
-		background.replaceColor(FlxColor.WHITE, 0xCC000088);
+		background.replaceColor(FlxColor.BLUE, 0xCC000088);
+		background.replaceColor(FlxColor.RED, 0xCC880000);
 	}
 
 	private function updatePos() {
@@ -70,12 +89,18 @@ class BattleHud extends FlxTypedGroup<FlxSprite> {
 		var cameraY = Std.int(FlxG.camera.scroll.y);
 
 		marginLeft = cameraX + Std.int((ViewPort.width - width) / 2);
-		marginTop = cameraY + Std.int((ViewPort.height - height) / 2);
+		marginTop = cameraY + Std.int(3 * (ViewPort.height - height) / 4);
+
+		var offsetX = marginLeft - background.x;
+		var offsetY = marginTop - background.y;
+
+		for (member in members) {
+			member.x += offsetX;
+			member.y += offsetY;
+		}
 
 		background.x = marginLeft;
 		background.y = marginTop;
-
-		hpBar.move(marginLeft + 10, marginTop + 7);
 	}
 
 	public function show() {
@@ -87,14 +112,17 @@ class BattleHud extends FlxTypedGroup<FlxSprite> {
 		visible = false;
 	}
 
-	public function setUnit(unit: Unit) {
-		hpBar.minValue = 0;
-		hpBar.maxValue = unit.os.hp;
-		hpBar.currentValue = unit.cs.hp;
-		hpBar.updateParams();
+	public function setUnits(unit1: Unit, unit2: Unit) {
+		name1.text = unit1.name;
+		hpBar1.minValue = 0;
+		hpBar1.maxValue = unit1.os.hp;
+		hpBar1.currentValue = unit1.cs.hp;
+		hpBar1.updateParams();
 
-		trace("hpBar.maxValue = " + hpBar.maxValue);
-		trace("hpBar.currentValue = " + hpBar.currentValue);
-		trace("hpBar.maxValue = " + hpBar.maxValue);
+		name2.text = unit2.name;
+		hpBar2.minValue = 0;
+		hpBar2.maxValue = unit2.os.hp;
+		hpBar2.currentValue = unit2.cs.hp;
+		hpBar2.updateParams();
 	}
 }
