@@ -26,12 +26,12 @@ class ProgressBar extends FlxTypedGroup<FlxSprite> {
 	private var colour: FlxColor;
 	private var indicator: FlxText;
 
-	private var framesSinceLastUpdate: Int;
-	private var framesPerStep: Int;
+	private var timeSinceLastUpdate: Float;
+	private var timePerStep: Float;
 
 	private var callback: Void -> Void;
 
-	public function new(x: Int, y: Int, length: Int, min: Int, max: Int, fps: Int = 1) {
+	public function new(x: Int, y: Int, length: Int, min: Int, max: Int, stepsPerSecond: Float = 15) {
 		super();
 
 		this.x = x;
@@ -61,8 +61,8 @@ class ProgressBar extends FlxTypedGroup<FlxSprite> {
 
 		updateParams();
 
-		framesSinceLastUpdate = 0;
-		framesPerStep = fps;
+		timeSinceLastUpdate = 0;
+		timePerStep = 1 / stepsPerSecond;
 
 		callback = null;
 	}
@@ -89,7 +89,7 @@ class ProgressBar extends FlxTypedGroup<FlxSprite> {
 
 	public function updateParams() {
 		indicator.text = Std.string(currentValue);
-		stepSize = Utils.max(1, Std.int((maxValue - maxValue) / numberOfSteps));
+		stepSize = Utils.max(1, Std.int(numberOfSteps / (maxValue - minValue)));
 		currentStep = Std.int(currentValue * (numberOfSteps - 1) / (maxValue - minValue));
 
 		for (i in 0 ... members.length) {
@@ -100,27 +100,38 @@ class ProgressBar extends FlxTypedGroup<FlxSprite> {
 	}
 
 	override public function update(elapsed: Float) {
-		if (framesSinceLastUpdate >= framesPerStep) {
+		if (timeSinceLastUpdate >= timePerStep) {
 			var targetStep: Int = Std.int(currentValue * (numberOfSteps - 1) / (maxValue - minValue));
 			var tempValue: Int = Std.int(currentStep * (maxValue - minValue) / (numberOfSteps - 1));
 
-			if (currentStep > targetStep) {
-				indicator.text = Std.string(tempValue);
-				members[currentStep].animation.frameIndex += 3;
-				currentStep--;
-			} else if (currentStep < targetStep) {
-				indicator.text = Std.string(tempValue);
-				members[currentStep].animation.frameIndex = getFrameIndex(currentStep);
-				currentStep++;
-			} else if (currentStep == targetStep && callback != null) {
-				indicator.text = Std.string(currentValue);
+			var i: Int = 0;
+			var stepIncrement = 0;
+			while (currentStep != targetStep && i < stepSize) {
+				if (currentStep > targetStep) {
+					indicator.text = Std.string(tempValue);
+					members[currentStep].animation.frameIndex += 3;
+					stepIncrement = -1;
+				} else if (currentStep < targetStep) {
+					indicator.text = Std.string(tempValue);
+					members[currentStep].animation.frameIndex = getFrameIndex(currentStep);
+					stepIncrement = 1;
+				}
+
+				currentStep += stepIncrement;
+				i++;
+			}
+
+			if (currentStep == targetStep && callback != null) {
+				if (stepIncrement < 0)
+					members[currentStep].animation.frameIndex += 3;
+
 				callback();
 				callback = null;
 			}
 
-			framesSinceLastUpdate = 0;
+			timeSinceLastUpdate = 0;
 		} else {
-			framesSinceLastUpdate++;
+			timeSinceLastUpdate += elapsed;
 		}
 
 		super.update(elapsed);

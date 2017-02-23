@@ -1384,13 +1384,13 @@
   <object id="72" name="Roger" type="Fighter" x="320" y="128" width="16" height="16">
    <properties>
     <property name="def" type="int" value="3"/>
-    <property name="hp" type="int" value="26"/>
+    <property name="hp" type="int" value="4"/>
     <property name="lck" type="int" value="5"/>
     <property name="mgc" type="int" value="2"/>
     <property name="mov" type="int" value="6"/>
     <property name="res" type="int" value="3"/>
     <property name="skl" type="int" value="8"/>
-    <property name="spd" type="int" value="7"/>
+    <property name="spd" type="int" value="8"/>
     <property name="str" type="int" value="10"/>
    </properties>
   </object>
@@ -1416,7 +1416,7 @@
     <property name="mov" type="int" value="6"/>
     <property name="res" type="int" value="3"/>
     <property name="skl" type="int" value="8"/>
-    <property name="spd" type="int" value="7"/>
+    <property name="spd" type="int" value="20"/>
     <property name="str" type="int" value="10"/>
    </properties>
   </object>

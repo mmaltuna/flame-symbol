@@ -1,7 +1,9 @@
 package states;
 
 import flixel.FlxG;
-import flixel.FlxState;
+//import flixel.FlxState;
+import flixel.addons.transition.FlxTransitionableState;
+import flixel.addons.transition.TransitionData;
 import flixel.FlxSprite;
 import flixel.group.FlxGroup;
 import flixel.tile.FlxTilemap;
@@ -9,6 +11,7 @@ import flixel.text.FlxText;
 import flixel.util.FlxColor;
 import flixel.util.FlxPath;
 import openfl.Assets;
+import haxe.Timer;
 
 import entities.Unit;
 import ui.BattleDialog;
@@ -29,7 +32,7 @@ import utils.Level;
 
 import entities.Weapon;
 
-class BattleState extends FlxState {
+class BattleState extends FlxTransitionableState {
 	public var army1: Map<Int, Unit>;
 	public var army2: Map<Int, Unit>;
 
@@ -46,8 +49,6 @@ class BattleState extends FlxState {
 	public var menu: BattleMenu;
 	public var battleHud: BattleHud;
 
-	public var background: FlxTilemap;
-	public var tileMap: FlxTilemap;
 	public var level: Level;
 
 	public var turn: Int;
@@ -68,7 +69,8 @@ class BattleState extends FlxState {
 		super.create();
 		instance = this;
 
-		FlxG.camera.bgColor = FlxColor.WHITE;
+		transIn = new TransitionData(TransitionType.TILES, FlxColor.BLACK, 1.0);
+		transOut = new TransitionData(TransitionType.TILES, FlxColor.BLACK, 1.0);
 
 		turn = 1;
 		oldPos = new TilePoint(0, 0);
@@ -76,9 +78,7 @@ class BattleState extends FlxState {
 		level = new Level("assets/data/stage1.tmx");
 		add(level.backgroundTiles);
 
-		MapUtils.mapWidth = level.width;
-		MapUtils.mapHeight = level.height;
-
+		FlxG.camera.bgColor = FlxColor.WHITE;
 		FlxG.camera.setSize(level.width * ViewPort.tileSize, level.height * ViewPort.tileSize);
 
 		movementRange = new FlxTypedGroup<FlxSprite>();
@@ -90,43 +90,32 @@ class BattleState extends FlxState {
 		activePath = new FlxTypedGroup<FlxSprite>();
 		add(activePath);
 
-		army1 = new Map<Int, Unit>();
-		army2 = new Map<Int, Unit>();
+		army1 = level.army1;
+		army2 = level.army2;
+		army = army1;
+		enemy = army2;
 
-		for (objectGroup in level.objectGroups) {
-			var selectedArmy: Map<Int, Unit> = null;
-			var selectedColour: FlxColor = FlxColor.TRANSPARENT;
+		for (unit in army1)
+			add(unit);
 
-			if (objectGroup.name == "Army 1") {
-				selectedArmy = army1;
-				selectedColour = FlxColor.BLUE;
-			} else if (objectGroup.name == "Army 2") {
-				selectedArmy = army2;
-				selectedColour = FlxColor.RED;
-			}
+		for (unit in army2)
+			add(unit);
 
-			for (object in objectGroup.objects) {
-				var unit: Unit = Unit.createUnit(object, selectedColour);
-				selectedArmy.set(MapUtils.pointToIndex(unit.pos), unit);
-				add(unit);
-			}
-		}
-
-		/*var unit1: Unit = new Unit(7, 3, 1);
+		var unit1: Unit = new Unit(20, 10, FlxColor.BLUE);
 		unit1.os.hp = 26;
 		unit1.os.str = 7;
 		unit1.os.mgc = 1;
 		unit1.os.skl = 9;
-		unit1.os.spd = 8;
+		unit1.os.spd = 20;
 		unit1.os.lck = 3;
 		unit1.os.def = 5;
 		unit1.os.res = 2;
 		unit1.os.mov = 6;
-		unit1.name = "Roger";
-		unit1.type = "Great Lord";
+		unit1.name = "Johan";
+		unit1.type = "Archer";
 		unit1.resetStats();
 		army1.set(MapUtils.coordsToIndex(unit1.pos.x, unit1.pos.y), unit1);
-		add(unit1);*/
+		add(unit1);
 
 		var ironSword = new Weapon(0, 0);
 		ironSword.hitRate = 90;
@@ -142,10 +131,10 @@ class BattleState extends FlxState {
 		ironBow.minRange = 2;
 		ironBow.maxRange = 2;
 
-		/*unit1.items.push(ironSword);
-		unit1.equippedWeapon = ironSword;
+		unit1.items.push(ironBow);
+		unit1.equipWeapon(ironBow);
 
-		var unit2: Unit = new Unit(4, 4, 2);
+		/*var unit2: Unit = new Unit(4, 4, 2);
 		unit2.os.hp = 30;
 		unit2.os.str = 7;
 		unit2.os.mgc = 1;
@@ -184,9 +173,6 @@ class BattleState extends FlxState {
 
 		unit3.items.push(ironBow);
 		unit3.equippedWeapon = ironBow;*/
-
-		army = army1;
-		enemy = army2;
 
 		cursor = new BattleCursor(6, 4);
 		add(cursor);
@@ -317,7 +303,10 @@ class BattleState extends FlxState {
 			}
 
 		} else if (selectedUnit != null && selectedUnit.status == UnitStatus.STATUS_ATTACKING) {
-			onAttack(onWait);
+			onAttack(function() {
+				battleHud.hide();
+				onWait();
+			});
 
 		} else if (selectedUnit == null && army.exists(MapUtils.coordsToIndex(posX, posY)) && !menu.visible) {
 			var unit: Unit = army.get(MapUtils.coordsToIndex(posX, posY));
@@ -387,9 +376,12 @@ class BattleState extends FlxState {
 	}
 
 	public function onAttack(callback: Void -> Void) {
-		combatDialog.hide();
-
 		var defUnit = enemy.get(MapUtils.pointToIndex(cursor.getSelectedActiveTile()));
+
+		combatDialog.hide();
+		battleHud.setUnits(selectedUnit, defUnit);
+		battleHud.show();
+
 		selectedUnit.attack(defUnit, function() {
 			Utils.clearSpriteGroup(attackRange);
 			Utils.clearPointArray(cursor.activeTiles);
@@ -404,7 +396,7 @@ class BattleState extends FlxState {
 				selectedUnit = null;
 			}
 
-			callback();
+			Timer.delay(callback, 400);
 		});
 	}
 
@@ -437,8 +429,10 @@ class BattleState extends FlxState {
 	}
 
 	public function onDeath(unit: Unit, army: Map<Int, Unit>) {
-		army.remove(MapUtils.pointToIndex(unit.pos));
-		unit.destroy();
+		unit.die(function() {
+			army.remove(MapUtils.pointToIndex(unit.pos));
+			unit.destroy();
+		});
 	}
 
 	public function onDialogNavigate(goingUp: Bool) {
@@ -596,6 +590,10 @@ class BattleState extends FlxState {
 		}
 
 		cursorOnFirstUnit();
+
+		transitionOut(function() {
+			transitionIn();
+		});
 	}
 
 	public function cursorOnFirstUnit() {

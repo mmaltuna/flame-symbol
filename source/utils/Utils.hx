@@ -19,6 +19,10 @@ class Utils {
 		return a >= 0 ? 1 : -1;
 	}
 
+	public static function sign0(a: Int): Int {
+		return a >= 0 ? (a > 0 ? 1 : 0) : -1;
+	}
+
 	public static function abs(a: Int): Int {
 		return a < 0 ? -a : a;
 	}

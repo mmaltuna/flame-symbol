@@ -1,8 +1,12 @@
 package entities;
 
 import flixel.FlxObject;
+import flixel.FlxSprite;
+import flixel.effects.FlxFlicker;
 import flixel.util.FlxColor;
 import flixel.util.FlxPath;
+import flixel.util.FlxSpriteUtil;
+import flixel.tweens.FlxTween;
 import flixel.math.FlxPoint;
 
 import utils.MapUtils;
@@ -12,7 +16,6 @@ import utils.Utils;
 import entities.Item;
 import entities.Weapon;
 import utils.data.TilePoint;
-import utils.tiled.TiledObject;
 
 import states.BattleState;
 
@@ -267,54 +270,65 @@ class Unit extends Entity {
 	}
 
 	public function attack(enemy: Unit, callback: Void -> Void) {
-		battle.battleHud.setUnits(this, enemy);
-		battle.battleHud.show();
-
-		if (getAccuracy(enemy) >= Std.random(100)) {
-			performAttack(enemy, 2, function() {
-				if (enemy.isAlive() && enemy.canCounterattack(this) && enemy.getAccuracy(this) >= Std.random(100)) {
-					// Defender counter attacks
-					enemy.performAttack(this, 1 ,function() {
-						if (enemy.repeatsAttack(this) && enemy.getAccuracy(this) >= Std.random(100)) {
-							// Defender attacks again
-							enemy.performAttack(this, 1, function() {
-								if (isAlive() && repeatsAttack(enemy) && getAccuracy(enemy) >= Std.random(100)) {
-									// Attacker's second attack
-									performAttack(enemy, 2, function() {
-										battle.battleHud.hide();
-										callback();
-									});
-								} else {
-									// Attacker misses second attack or can't repeat attack
-									battle.battleHud.hide();
+		performAttack(enemy, 2, function() {
+			if (enemy.isAlive() && enemy.canCounterattack(this)) {
+				// Defender counter attacks
+				enemy.performAttack(this, 1 ,function() {
+					if (enemy.repeatsAttack(this) && isAlive()) {
+						// Defender attacks again
+						enemy.performAttack(this, 1, function() {
+							if (isAlive() && repeatsAttack(enemy)) {
+								// Attacker's second attack
+								performAttack(enemy, 2, function() {
 									callback();
-								}
-							});
-						} else {
-							// Defender misses second attack or can't repeat attack
-							battle.battleHud.hide();
+								});
+							} else {
+								callback();
+							}
+						});
+					} else if (isAlive() && repeatsAttack(enemy) && enemy.isAlive()) {
+						// Attacker's second attack
+						performAttack(enemy, 2, function() {
 							callback();
-						}
-					});
-				} else {
-					// Defender misses counter attack or cannot counter
-					battle.battleHud.hide();
+						});
+					} else {
+						callback();
+					}
+				});
+			} else if (isAlive() && repeatsAttack(enemy) && enemy.isAlive()) {
+				// Attacker's second attack
+				performAttack(enemy, 2, function() {
 					callback();
-				}
-			});
-		} else {
-			trace(name + " misses!");
-			battle.battleHud.hide();
-			callback();
-		}
+				});
+			} else {
+				callback();
+			}
+		});
 	}
 
 	private function performAttack(enemy: Unit, which: Int, callback: Void -> Void) {
-		enemy.cs.hp = Utils.max(0, enemy.cs.hp - calcPhysicalDamage(enemy));
-		if (which == 1)
-			battle.battleHud.hpBar1.setValue(enemy.cs.hp, callback);
-		else
-			battle.battleHud.hpBar2.setValue(enemy.cs.hp, callback);
+		var xDir: Int = Utils.sign0(enemy.pos.x - pos.x);
+		var yDir: Int = Utils.sign0(enemy.pos.y - pos.y);
+
+		FlxTween.tween(this, { x: x + xDir * 4, y: y + yDir * 4 }, 0.1, { onComplete: function(tween: FlxTween) {
+			FlxTween.tween(this, { x: x + xDir * -4, y: y + yDir * -4 }, 0.1);
+		} });
+
+		if (getAccuracy(enemy) >= Std.random(100)) {
+			enemy.cs.hp = Utils.max(0, enemy.cs.hp - calcPhysicalDamage(enemy));
+
+			FlxSpriteUtil.flicker(enemy, 0.2, 0.05, true, function(flicker: FlxFlicker) {
+				if (which == 1)
+					battle.battleHud.hpBar1.setValue(enemy.cs.hp, callback);
+				else
+					battle.battleHud.hpBar2.setValue(enemy.cs.hp, callback);
+			});
+		} else {
+			// Attack misses
+			// TODO: indicate missed attack
+			trace(name + " misses!");
+			callback();
+		}
 	}
 
 	public function canCounterattack(enemy: Unit): Bool {
@@ -330,6 +344,11 @@ class Unit extends Entity {
 		return cs.hp > 0;
 	}
 
+	public function die(callback: Void -> Void) {
+		function setAlpha(sprite: FlxSprite, value: Float) { sprite.alpha = value; };
+		FlxTween.num(1, 0, 0.2, { onComplete: function(_) { callback(); } }, setAlpha.bind(this));
+	}
+
 	public function resetStats() {
 		cs.hp = os.hp;
 		cs.str = os.str;
@@ -340,27 +359,6 @@ class Unit extends Entity {
 		cs.def = os.def;
 		cs.res = os.res;
 		cs.mov = os.mov;
-	}
-
-	public static function createUnit(object: TiledObject, colour: FlxColor): Unit {
-		var posX: Int = Std.int(object.x / ViewPort.tileSize);
-		var posY: Int = Std.int(object.y / ViewPort.tileSize);
-		var unit: Unit = new Unit(posX, posY, colour);
-
-		unit.os.hp = Std.parseInt(object.custom.get("hp"));
-		unit.os.str = Std.parseInt(object.custom.get("str"));
-		unit.os.mgc = Std.parseInt(object.custom.get("mgc"));
-		unit.os.skl = Std.parseInt(object.custom.get("skl"));
-		unit.os.spd = Std.parseInt(object.custom.get("spd"));
-		unit.os.lck = Std.parseInt(object.custom.get("lck"));
-		unit.os.def = Std.parseInt(object.custom.get("def"));
-		unit.os.res = Std.parseInt(object.custom.get("res"));
-		unit.os.mov = Std.parseInt(object.custom.get("mov"));
-		unit.name = object.name;
-		unit.type = object.type;
-		unit.resetStats();
-
-		return unit;
 	}
 }
 
