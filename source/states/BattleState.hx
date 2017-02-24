@@ -276,7 +276,8 @@ class BattleState extends FlxTransitionableState {
 			oldPos.x = selectedUnit.pos.x;
 			oldPos.y = selectedUnit.pos.y;
 
-			selectedUnit.move(posX, posY, pathOptions.bestPaths.get(MapUtils.coordsToIndex(posX, posY)), onMoveEnd);
+			selectedUnit.hpBar.hide();
+			selectedUnit.moveUnit(posX, posY, pathOptions.bestPaths.get(MapUtils.coordsToIndex(posX, posY)), onMoveEnd);
 
 		} else if (selectedUnit != null && selectedUnit.status == UnitStatus.STATUS_MOVED) {
 
@@ -354,7 +355,7 @@ class BattleState extends FlxTransitionableState {
 
 			cursor.pos.x = oldPos.x;
 			cursor.pos.y = oldPos.y;
-			selectedUnit.move(oldPos.x, oldPos.y, null);
+			selectedUnit.moveUnit(oldPos.x, oldPos.y, null);
 			selectedUnit.select();
 
 			drawMovementRange();
@@ -464,6 +465,8 @@ class BattleState extends FlxTransitionableState {
 	}
 
 	public function onMoveEnd(path: FlxPath) {
+		selectedUnit.hpBar.move(selectedUnit.pos.x * ViewPort.tileSize, (selectedUnit.pos.y + 1) * ViewPort.tileSize - 1);
+		selectedUnit.hpBar.showBar();
 		selectedUnit.status = UnitStatus.STATUS_MOVED;
 		unitsInAttackRange = getUnitsInAttackRange(selectedUnit);
 

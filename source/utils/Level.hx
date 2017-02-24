@@ -85,6 +85,10 @@ class Level extends TiledMap {
 		unit.type = object.type;
 		unit.resetStats();
 
+		unit.hpBar.maxValue = unit.os.hp;
+		unit.hpBar.currentValue = unit.os.hp;
+		unit.hpBar.updateParams();
+
 		return unit;
 	}
 

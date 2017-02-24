@@ -17,6 +17,8 @@ import entities.Item;
 import entities.Weapon;
 import utils.data.TilePoint;
 
+import ui.ProgressBar;
+
 import states.BattleState;
 
 class Unit extends Entity {
@@ -48,6 +50,7 @@ class Unit extends Entity {
 	public var activePath: Path;
 
 	public var battle: BattleState;
+	public var hpBar: ProgressBar;
 
 	public function new(posX: Int, posY: Int, colour: FlxColor) {
 		offsetX = -2;
@@ -55,18 +58,18 @@ class Unit extends Entity {
 
 		super(posX * ViewPort.tileSize + offsetX, posY * ViewPort.tileSize + offsetY);
 		if (colour == FlxColor.BLUE)
-			loadGraphic("assets/images/sword-warrior-blue.png", true, 20, 20);
+			sprite.loadGraphic("assets/images/sword-warrior-blue.png", true, 20, 20);
 		else
-			loadGraphic("assets/images/sword-warrior-red.png", true, 20, 20);
+			sprite.loadGraphic("assets/images/sword-warrior-red.png", true, 20, 20);
 
-		setFacingFlip(FlxObject.LEFT, false, false);
-		setFacingFlip(FlxObject.RIGHT, true, false);
+		sprite.setFacingFlip(FlxObject.LEFT, false, false);
+		sprite.setFacingFlip(FlxObject.RIGHT, true, false);
 
-		animation.add("idle", [12, 13], 2, true);
-		animation.add("walk-down", [0, 1, 2, 3], 6, true);
-		animation.add("walk-lr", [4, 5, 6, 7], 6, true);
-		animation.add("walk-up", [8, 9, 10, 11], 6, true);
-		animation.add("selected", [14, 15, 16, 15], 6, true);
+		sprite.animation.add("idle", [12, 13], 2, true);
+		sprite.animation.add("walk-down", [0, 1, 2, 3], 6, true);
+		sprite.animation.add("walk-lr", [4, 5, 6, 7], 6, true);
+		sprite.animation.add("walk-up", [8, 9, 10, 11], 6, true);
+		sprite.animation.add("selected", [14, 15, 16, 15], 6, true);
 
 		cs = new UnitStats();
 		os = new UnitStats();
@@ -85,6 +88,11 @@ class Unit extends Entity {
 		movementType = UnitMovementType.ONFOOT;
 
 		battle = BattleState.getInstance();
+
+		hpBar = new ProgressBar(posX * ViewPort.tileSize, (posY + 1) * ViewPort.tileSize - 1, ViewPort.tileSize, 1, 0, 100, false);
+		hpBar.hideIndicator();
+		for (member in hpBar.members)
+			add(member);
 	}
 
 	public function useItem(item: Item) {
@@ -105,7 +113,7 @@ class Unit extends Entity {
 
 	public function select(): Bool {
 		if (status == UnitStatus.STATUS_AVAILABLE || status == UnitStatus.STATUS_MOVED) {
-			animation.play("selected");
+			sprite.animation.play("selected");
 			status = UnitStatus.STATUS_SELECTED;
 			return true;
 		}
@@ -114,25 +122,25 @@ class Unit extends Entity {
 
 	public function deselect() {
 		if (status == UnitStatus.STATUS_SELECTED) {
-			animation.play("idle");
+			sprite.animation.play("idle");
 			status = UnitStatus.STATUS_AVAILABLE;
 		}
 	}
 
 	public function enable() {
-		animation.play("idle");
+		sprite.animation.play("idle");
 		status = UnitStatus.STATUS_AVAILABLE;
-		color = 0xffffff;
+		sprite.color = 0xffffff;
 	}
 
 	public function disable() {
-		animation.finish();
-		animation.frameIndex = 12;
+		sprite.animation.finish();
+		sprite.animation.frameIndex = 12;
 		status = UnitStatus.STATUS_DONE;
-		color = 0x555555;
+		sprite.color = 0x555555;
 	}
 
-	public function move(posX: Int, posY: Int, path: Path, callback: FlxPath -> Void = null) {
+	public function moveUnit(posX: Int, posY: Int, path: Path, callback: FlxPath -> Void = null) {
 		pos.x = posX;
 		pos.y = posY;
 
@@ -144,8 +152,8 @@ class Unit extends Entity {
 
 			activePath = path;
 
-			if (this.path != null) {
-				for (step in this.path.nodes)
+			if (sprite.path != null) {
+				for (step in sprite.path.nodes)
 					step.destroy();
 			}
 
@@ -154,20 +162,23 @@ class Unit extends Entity {
 				pathArray.push(new FlxPoint(step.x * ViewPort.tileSize + ViewPort.tileSize / 2,
 					step.y * ViewPort.tileSize + (ViewPort.tileSize + offsetY) / 2));
 
-			this.path = new FlxPath(pathArray);
+			sprite.path = new FlxPath(pathArray);
 
 			if (callback != null)
-				this.path.onComplete = callback;
+				sprite.path.onComplete = callback;
+			else
+				hpBar.move(pos.x * ViewPort.tileSize, (posY + 1) * ViewPort.tileSize - 1);
 
-			animation.play("walk-lr");
-			this.path.start(200);
+			sprite.animation.play("walk-lr");
+			sprite.path.start(200);
 
 			for (step in pathArray)
 				step.destroy();
 
 		} else {
-			this.x = pos.x * ViewPort.tileSize + offsetX;
-			this.y = pos.y * ViewPort.tileSize + offsetY;
+			sprite.x = pos.x * ViewPort.tileSize + offsetX;
+			sprite.y = pos.y * ViewPort.tileSize + offsetY;
+			hpBar.move(pos.x * ViewPort.tileSize, (posY + 1) * ViewPort.tileSize - 1);
 
 			if (callback != null)
 				callback(null);
@@ -176,25 +187,25 @@ class Unit extends Entity {
 
 	override public function update(elapsed: Float) {
 		if (status == UnitStatus.STATUS_MOVING) {
-			var nodeIndex = this.path.nodeIndex;
+			var nodeIndex = sprite.path.nodeIndex;
 			var changedFacing = false;
 
 			if (nodeIndex > 0 && nodeIndex < activePath.path.length) {
-				if (facing != activePath.facing[nodeIndex - 1]) {
-					facing = activePath.facing[nodeIndex - 1];
+				if (sprite.facing != activePath.facing[nodeIndex - 1]) {
+					sprite.facing = activePath.facing[nodeIndex - 1];
 					changedFacing = true;
 				}
 			} else if (nodeIndex == 0) {
-				facing = activePath.facing[nodeIndex];
+				sprite.facing = activePath.facing[nodeIndex];
 				changedFacing = true;
 			}
 
-			if (changedFacing && (facing == FlxObject.LEFT || facing == FlxObject.RIGHT)) {
-				animation.play("walk-lr");
-			} else if (changedFacing && facing == FlxObject.UP) {
-				animation.play("walk-up");
-			} else if (changedFacing && facing == FlxObject.DOWN) {
-				animation.play("walk-down");
+			if (changedFacing && (sprite.facing == FlxObject.LEFT || sprite.facing == FlxObject.RIGHT)) {
+				sprite.animation.play("walk-lr");
+			} else if (changedFacing && sprite.facing == FlxObject.UP) {
+				sprite.animation.play("walk-up");
+			} else if (changedFacing && sprite.facing == FlxObject.DOWN) {
+				sprite.animation.play("walk-down");
 			}
 		}
 
@@ -315,9 +326,9 @@ class Unit extends Entity {
 		} });
 
 		if (getAccuracy(enemy) >= Std.random(100)) {
-			enemy.cs.hp = Utils.max(0, enemy.cs.hp - calcPhysicalDamage(enemy));
+			enemy.setHP(Utils.max(0, enemy.cs.hp - calcPhysicalDamage(enemy)));
 
-			FlxSpriteUtil.flicker(enemy, 0.2, 0.05, true, function(flicker: FlxFlicker) {
+			FlxSpriteUtil.flicker(enemy.sprite, 0.2, 0.05, true, function(flicker: FlxFlicker) {
 				if (which == 1)
 					battle.battleHud.hpBar1.setValue(enemy.cs.hp, callback);
 				else
@@ -346,7 +357,12 @@ class Unit extends Entity {
 
 	public function die(callback: Void -> Void) {
 		function setAlpha(sprite: FlxSprite, value: Float) { sprite.alpha = value; };
-		FlxTween.num(1, 0, 0.2, { onComplete: function(_) { callback(); } }, setAlpha.bind(this));
+		FlxTween.num(1, 0, 0.2, { onComplete: function(_) { callback(); } }, setAlpha.bind(sprite));
+	}
+
+	public function setHP(hp: Int) {
+		cs.hp = hp;
+		hpBar.setValue(cs.hp);
 	}
 
 	public function resetStats() {

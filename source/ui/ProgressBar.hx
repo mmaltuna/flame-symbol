@@ -12,8 +12,6 @@ import flash.display.BitmapData;
 import openfl.geom.Rectangle;
 import openfl.geom.Point;
 
-import utils.Utils;
-
 class ProgressBar extends FlxTypedGroup<FlxSprite> {
 	private var bar: FlxSprite;
 	private var indicator: FlxText;
@@ -24,14 +22,11 @@ class ProgressBar extends FlxTypedGroup<FlxSprite> {
 
 	private var bgRect: Rectangle;
 	private var fgRect: Rectangle;
-
-	private var x: Int;
-	private var y: Int;
+	private var offset: Point;
 
 	public var currentValue: Int;
 	public var minValue: Int;
 	public var maxValue: Int;
-	private var lengthInPixels: Int;
 
 	private var numberOfSteps: Int;
 	private var currentStep: Int;
@@ -46,11 +41,8 @@ class ProgressBar extends FlxTypedGroup<FlxSprite> {
 
 	private var callback: Void -> Void;
 
-	public function new(x: Int, y: Int, length: Int, min: Int, max: Int, stepsPerSecond: Float = 30) {
+	public function new(x: Int, y: Int, width: Int, height: Int, min: Int, max: Int, border: Bool = true, stepsPerSecond: Float = 30) {
 		super();
-
-		this.x = x;
-		this.y = y;
 
 		currentValue = max;
 		minValue = min;
@@ -60,20 +52,21 @@ class ProgressBar extends FlxTypedGroup<FlxSprite> {
 		backgroundColour = FlxColor.BLACK;
 		borderColour = FlxColor.WHITE;
 
-		numberOfSteps = length - 2;
+		numberOfSteps = border ? width - 2 : width;
 		currentStep = numberOfSteps - 1;
 
-		bar = new FlxSprite(x, y).makeGraphic(length, 4);
+		bar = new FlxSprite(x, y).makeGraphic(width, height);
 		add(bar);
 
-		canvas = new BitmapData(length, 4, false, borderColour);
-		bg = new BitmapData(length - 2, 2, false, backgroundColour);
-		fg = new BitmapData(length - 2, 2, false, foregroundColour);
+		bgRect = new Rectangle(0, 0, numberOfSteps, border ? height - 2 : height);
+		fgRect = new Rectangle(0, 0, bgRect.width, bgRect.height);
+		offset = border ? new Point(1, 1) : new Point(0, 0);
 
-		bgRect = new Rectangle(0, 0, length - 2, 2);
-		fgRect = new Rectangle(0, 0, length - 2, 2);
+		canvas = new BitmapData(width, height, false, borderColour);
+		bg = new BitmapData(Std.int(bgRect.width), Std.int(bgRect.height), false, backgroundColour);
+		fg = new BitmapData(Std.int(bgRect.width), Std.int(bgRect.height), false, foregroundColour);
 
-		indicator = new FlxText(x + length, y - 3, 20, Std.string(currentValue));
+		indicator = new FlxText(x + width, y - 3, 20, Std.string(currentValue));	// TODO: param this
 		indicator.setFormat("assets/fonts/pixelmini.ttf", FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		add(indicator);
 
@@ -95,8 +88,6 @@ class ProgressBar extends FlxTypedGroup<FlxSprite> {
 
 	public function repaint() {
 		fgRect.width = currentStep;
-		var offset: Point = new Point(1, 1);
-
 		canvas.copyPixels(bg, bgRect, offset);
 		canvas.copyPixels(fg, fgRect, offset);
 		bar.pixels = canvas;
@@ -107,6 +98,9 @@ class ProgressBar extends FlxTypedGroup<FlxSprite> {
 			currentValue = value;
 			callback = onValueSet;
 		}
+
+		if (onValueSet == null)
+			updateParams();
 	}
 
 	override public function update(elapsed: Float) {
@@ -139,5 +133,44 @@ class ProgressBar extends FlxTypedGroup<FlxSprite> {
 		}
 
 		super.update(elapsed);
+	}
+
+	public function show() {
+		showBar();
+		showIndicator();
+	}
+
+	public function hide() {
+		hideBar();
+		hideIndicator();
+	}
+
+	public function showBar() {
+		bar.visible = true;
+	}
+
+	public function hideBar() {
+		bar.visible = false;
+	}
+
+	public function showIndicator() {
+		indicator.visible = true;
+	}
+
+	public function hideIndicator() {
+		indicator.visible = false;
+	}
+
+	public function move(newX: Int, newY: Int) {
+		var offsetX: Float = newX - bar.x;
+		var offsetY: Float = newY - bar.y;
+
+		for (member in members) {
+			member.x += offsetX;
+			member.y += offsetY;
+		}
+
+		bar.x = newX;
+		bar.y = newY;
 	}
 }
