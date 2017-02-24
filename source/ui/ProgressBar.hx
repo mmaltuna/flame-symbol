@@ -3,13 +3,27 @@ package ui;
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.util.FlxColor;
+import flixel.util.FlxSpriteUtil;
 import flixel.text.FlxText;
 import flixel.group.FlxGroup;
+
+import flash.display.Bitmap;
+import flash.display.BitmapData;
+import openfl.geom.Rectangle;
+import openfl.geom.Point;
 
 import utils.Utils;
 
 class ProgressBar extends FlxTypedGroup<FlxSprite> {
-	private var spriteMap: FlxSprite;
+	private var bar: FlxSprite;
+	private var indicator: FlxText;
+
+	private var bg: BitmapData;
+	private var fg: BitmapData;
+	private var canvas: BitmapData;
+
+	private var bgRect: Rectangle;
+	private var fgRect: Rectangle;
 
 	private var x: Int;
 	private var y: Int;
@@ -23,15 +37,16 @@ class ProgressBar extends FlxTypedGroup<FlxSprite> {
 	private var currentStep: Int;
 	private var stepSize: Int;
 
-	private var colour: FlxColor;
-	private var indicator: FlxText;
+	private var foregroundColour: FlxColor;
+	private var backgroundColour: FlxColor;
+	private var borderColour: FlxColor;
 
 	private var timeSinceLastUpdate: Float;
 	private var timePerStep: Float;
 
 	private var callback: Void -> Void;
 
-	public function new(x: Int, y: Int, length: Int, min: Int, max: Int, stepsPerSecond: Float = 15) {
+	public function new(x: Int, y: Int, length: Int, min: Int, max: Int, stepsPerSecond: Float = 30) {
 		super();
 
 		this.x = x;
@@ -41,25 +56,28 @@ class ProgressBar extends FlxTypedGroup<FlxSprite> {
 		minValue = min;
 		maxValue = max;
 
-		colour = FlxColor.RED;
+		foregroundColour = FlxColor.RED;
+		backgroundColour = FlxColor.BLACK;
+		borderColour = FlxColor.WHITE;
 
-		numberOfSteps = 2 + Math.ceil((length - 4) / 2);
-		currentStep = numberOfSteps;
+		numberOfSteps = length - 2;
+		currentStep = numberOfSteps - 1;
 
-		for (i in 0 ... numberOfSteps) {
-			var step: FlxSprite = new FlxSprite(x + i * 2, y);
-			step.loadGraphic("assets/images/progress-bar.png", true, 2, 4);
-			step.replaceColor(FlxColor.MAGENTA, colour);
-			step.animation.frameIndex = getFrameIndex(i);
+		bar = new FlxSprite(x, y).makeGraphic(length, 4);
+		add(bar);
 
-			add(step);
-		}
+		canvas = new BitmapData(length, 4, false, borderColour);
+		bg = new BitmapData(length - 2, 2, false, backgroundColour);
+		fg = new BitmapData(length - 2, 2, false, foregroundColour);
 
-		indicator = new FlxText(x + numberOfSteps * 2, y - 3, 20, Std.string(currentValue));
+		bgRect = new Rectangle(0, 0, length - 2, 2);
+		fgRect = new Rectangle(0, 0, length - 2, 2);
+
+		indicator = new FlxText(x + length, y - 3, 20, Std.string(currentValue));
 		indicator.setFormat("assets/fonts/pixelmini.ttf", FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		add(indicator);
 
-		updateParams();
+		repaint();
 
 		timeSinceLastUpdate = 0;
 		timePerStep = 1 / stepsPerSecond;
@@ -67,17 +85,21 @@ class ProgressBar extends FlxTypedGroup<FlxSprite> {
 		callback = null;
 	}
 
-	public function move(x: Int, y: Int) {
-		var offsetX = x - this.x;
-		var offsetY = y - this.y;
+	public function updateParams() {
+		currentStep = Math.ceil(currentValue * numberOfSteps / (maxValue - minValue));
+		stepSize = Math.ceil(numberOfSteps / (maxValue - minValue));
+		indicator.text = Std.string(currentValue);
 
-		for (member in members) {
-			member.x += offsetX;
-			member.y += offsetY;
-		}
+		repaint();
+	}
 
-		this.x = x;
-		this.y = y;
+	public function repaint() {
+		fgRect.width = currentStep;
+		var offset: Point = new Point(1, 1);
+
+		canvas.copyPixels(bg, bgRect, offset);
+		canvas.copyPixels(fg, fgRect, offset);
+		bar.pixels = canvas;
 	}
 
 	public function setValue(value: Int, onValueSet: Void -> Void = null) {
@@ -87,36 +109,21 @@ class ProgressBar extends FlxTypedGroup<FlxSprite> {
 		}
 	}
 
-	public function updateParams() {
-		indicator.text = Std.string(currentValue);
-		stepSize = Math.ceil(numberOfSteps / (maxValue - minValue));
-		currentStep = Math.ceil(currentValue * numberOfSteps / (maxValue - minValue));
-
-		for (i in 0 ... members.length) {
-			members[i].animation.frameIndex = getFrameIndex(i);
-			if (i > currentStep)
-				members[i].animation.frameIndex += 3;
-		}
-	}
-
 	override public function update(elapsed: Float) {
 		if (timeSinceLastUpdate >= timePerStep) {
-			var targetStep: Int = Math.ceil(currentValue * numberOfSteps / (maxValue - minValue)) - 1;
+			var targetStep: Int = Math.ceil(currentValue * numberOfSteps / (maxValue - minValue));
 			var tempValue: Int = Math.floor(currentStep * (maxValue - minValue) / numberOfSteps);
 
 			var i: Int = 0;
-
 			while (currentStep != targetStep && i < stepSize) {
 				if (currentStep > targetStep) {
-					indicator.text = Std.string(tempValue);
-					members[currentStep].animation.frameIndex += 3;
 					currentStep--;
 				} else if (currentStep < targetStep) {
-					indicator.text = Std.string(tempValue);
-					members[currentStep].animation.frameIndex = getFrameIndex(currentStep);
 					currentStep++;
 				}
 
+				indicator.text = Std.string(tempValue);
+				repaint();
 				i++;
 			}
 
@@ -132,18 +139,5 @@ class ProgressBar extends FlxTypedGroup<FlxSprite> {
 		}
 
 		super.update(elapsed);
-	}
-
-	private function getFrameIndex(index: Int) {
-		var frameIndex = 0;
-
-		if (index == 0)
-			frameIndex = 0;
-		else if (index > 0 && index < numberOfSteps - 1)
-			frameIndex = 1;
-		else if (index == numberOfSteps - 1)
-			frameIndex = 2;
-
-		return frameIndex;
 	}
 }

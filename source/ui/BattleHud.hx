@@ -40,11 +40,11 @@ class BattleHud extends FlxTypedGroup<FlxSprite> {
 		x = marginLeft;
 		y = marginTop;
 
-		hpBar1 = new ProgressBar(x + 10, y + 14, 40, 0, 100);
+		hpBar1 = new ProgressBar(x + 10, y + 15, 40, 0, 100);
 		for (member in hpBar1.members)
 			add(member);
 
-		hpBar2 = new ProgressBar(x + 80, y + 14, 40, 0, 100);
+		hpBar2 = new ProgressBar(x + 80, y + 15, 40, 0, 100);
 		for (member in hpBar2.members)
 			add(member);
 
