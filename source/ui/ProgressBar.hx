@@ -43,7 +43,7 @@ class ProgressBar extends FlxTypedGroup<FlxSprite> {
 
 		colour = FlxColor.RED;
 
-		numberOfSteps = 2 + Std.int((length - 4) / 2);
+		numberOfSteps = 2 + Math.ceil((length - 4) / 2);
 		currentStep = numberOfSteps;
 
 		for (i in 0 ... numberOfSteps) {
@@ -89,8 +89,8 @@ class ProgressBar extends FlxTypedGroup<FlxSprite> {
 
 	public function updateParams() {
 		indicator.text = Std.string(currentValue);
-		stepSize = Utils.max(1, Std.int(numberOfSteps / (maxValue - minValue)));
-		currentStep = Std.int(currentValue * (numberOfSteps - 1) / (maxValue - minValue));
+		stepSize = Math.ceil(numberOfSteps / (maxValue - minValue));
+		currentStep = Math.ceil(currentValue * numberOfSteps / (maxValue - minValue));
 
 		for (i in 0 ... members.length) {
 			members[i].animation.frameIndex = getFrameIndex(i);
@@ -101,30 +101,27 @@ class ProgressBar extends FlxTypedGroup<FlxSprite> {
 
 	override public function update(elapsed: Float) {
 		if (timeSinceLastUpdate >= timePerStep) {
-			var targetStep: Int = Std.int(currentValue * (numberOfSteps - 1) / (maxValue - minValue));
-			var tempValue: Int = Std.int(currentStep * (maxValue - minValue) / (numberOfSteps - 1));
+			var targetStep: Int = Math.ceil(currentValue * numberOfSteps / (maxValue - minValue)) - 1;
+			var tempValue: Int = Math.floor(currentStep * (maxValue - minValue) / numberOfSteps);
 
 			var i: Int = 0;
-			var stepIncrement = 0;
+
 			while (currentStep != targetStep && i < stepSize) {
 				if (currentStep > targetStep) {
 					indicator.text = Std.string(tempValue);
 					members[currentStep].animation.frameIndex += 3;
-					stepIncrement = -1;
+					currentStep--;
 				} else if (currentStep < targetStep) {
 					indicator.text = Std.string(tempValue);
 					members[currentStep].animation.frameIndex = getFrameIndex(currentStep);
-					stepIncrement = 1;
+					currentStep++;
 				}
 
-				currentStep += stepIncrement;
 				i++;
 			}
 
 			if (currentStep == targetStep && callback != null) {
-				if (stepIncrement < 0)
-					members[currentStep].animation.frameIndex += 3;
-
+				indicator.text = Std.string(currentValue);
 				callback();
 				callback = null;
 			}
