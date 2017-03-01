@@ -18,6 +18,8 @@ class KeyboardUtils {
 	public static inline var KEY_RIGHT: Int = 39;
 	public static inline var KEY_DOWN: Int = 40;
 
+	public static var REPEAT_THRESHOLD: Int = 5;
+
 	private function new() {
 		keyMap = new Map<Int, Int>();
 		forbiddenKeys = new Set<Int>(function(a: Int, b: Int) {
@@ -67,7 +69,7 @@ class KeyboardUtils {
 		if (!keyMap.exists(key))
 			return false;
 
-		if (keyMap.get(key) >= 5)
+		if (keyMap.get(key) >= REPEAT_THRESHOLD)
 			return true;
 
 		return false;

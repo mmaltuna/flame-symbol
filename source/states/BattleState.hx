@@ -272,6 +272,7 @@ class BattleState extends FlxTransitionableState {
 
 			Utils.clearSpriteGroup(activePath);
 			Utils.clearSpriteGroup(movementRange);
+			Utils.clearSpriteGroup(attackRange);
 
 			oldPos.x = selectedUnit.pos.x;
 			oldPos.y = selectedUnit.pos.y;
@@ -294,7 +295,7 @@ class BattleState extends FlxTransitionableState {
 
 					actionDialog.hide();
 					combatDialog.show();
-					selectedUnit.status = UnitStatus.STATUS_ATTACKING;
+					selectedUnit.status = UnitStatus.STATUS_ATTACK_READY;
 
 				case "Wait":
 					onWait();
@@ -303,8 +304,12 @@ class BattleState extends FlxTransitionableState {
 					onCancel();
 			}
 
-		} else if (selectedUnit != null && selectedUnit.status == UnitStatus.STATUS_ATTACKING) {
+		} else if (selectedUnit != null && selectedUnit.status == UnitStatus.STATUS_ATTACK_READY) {
+			selectedUnit.status = UnitStatus.STATUS_ATTACKING;
+			Utils.clearSpriteGroup(attackRange);
+			
 			onAttack(function() {
+				cursor.show();
 				battleHud.hide();
 				onWait();
 			});
@@ -338,6 +343,7 @@ class BattleState extends FlxTransitionableState {
 			pathOptions.destroy();
 			Utils.clearSpriteGroup(movementRange);
 			Utils.clearSpriteGroup(activePath);
+			Utils.clearSpriteGroup(attackRange);
 
 			cursor.deselect();
 			cursor.pos.x = oldPos.x;
@@ -362,7 +368,7 @@ class BattleState extends FlxTransitionableState {
 
 			cursor.show(BattleCursor.STATUS_FREE);
 			actionDialog.hide();
-		} else if (selectedUnit != null && selectedUnit.status == UnitStatus.STATUS_ATTACKING) {
+		} else if (selectedUnit != null && selectedUnit.status == UnitStatus.STATUS_ATTACK_READY) {
 			Utils.clearPointArray(cursor.activeTiles);
 			Utils.clearSpriteGroup(attackRange);
 
@@ -370,6 +376,8 @@ class BattleState extends FlxTransitionableState {
 			combatDialog.hide();
 			actionDialog.show();
 			selectedUnit.status = UnitStatus.STATUS_MOVED;
+
+			drawAttackRange();
 		} else if (menu.visible) {
 			menu.hide();
 			cursor.show(BattleCursor.STATUS_FREE);
@@ -380,6 +388,7 @@ class BattleState extends FlxTransitionableState {
 		var defUnit = enemy.get(MapUtils.pointToIndex(cursor.getSelectedActiveTile()));
 
 		combatDialog.hide();
+		cursor.hide();
 		battleHud.setUnits(selectedUnit, defUnit);
 		battleHud.show();
 
@@ -397,7 +406,7 @@ class BattleState extends FlxTransitionableState {
 				selectedUnit = null;
 			}
 
-			Timer.delay(callback, 400);
+			Timer.delay(callback, 600);
 		});
 	}
 
@@ -443,10 +452,11 @@ class BattleState extends FlxTransitionableState {
 			else
 				actionDialog.nextItem();
 
-			if (actionDialog.select() == "Attack")
+			if (actionDialog.select() == "Attack") {
 				drawAttackRange();
-			else
+			} else {
 				Utils.clearSpriteGroup(attackRange);
+			}
 		}
 
 		if (menu.visible) {
@@ -458,14 +468,15 @@ class BattleState extends FlxTransitionableState {
 	}
 
 	public function onCursorChoose() {
-		if (selectedUnit != null && selectedUnit.status == UnitStatus.STATUS_ATTACKING) {
+		if (selectedUnit != null && selectedUnit.status == UnitStatus.STATUS_ATTACK_READY) {
 			combatDialog.defUnit = unitsInAttackRange[cursor.getSelectedTile()];
 			combatDialog.refresh();
 		}
 	}
 
 	public function onMoveEnd(path: FlxPath) {
-		selectedUnit.hpBar.move(selectedUnit.pos.x * ViewPort.tileSize, (selectedUnit.pos.y + 1) * ViewPort.tileSize - 1);
+		selectedUnit.moveElems(selectedUnit.pos.x, selectedUnit.pos.y);
+		//selectedUnit.hpBar.move(selectedUnit.pos.x * ViewPort.tileSize, (selectedUnit.pos.y + 1) * ViewPort.tileSize - 1);
 		selectedUnit.hpBar.showBar();
 		selectedUnit.status = UnitStatus.STATUS_MOVED;
 		unitsInAttackRange = getUnitsInAttackRange(selectedUnit);
@@ -552,7 +563,7 @@ class BattleState extends FlxTransitionableState {
 
 			tileGraphic.animation.frameIndex = frameIndex;
 			tileGraphic.alpha = 0.6;
-			movementRange.add(tileGraphic);
+			attackRange.add(tileGraphic);
 		}
 	}
 

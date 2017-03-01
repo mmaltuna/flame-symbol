@@ -8,6 +8,7 @@ import flixel.util.FlxPath;
 import flixel.util.FlxSpriteUtil;
 import flixel.tweens.FlxTween;
 import flixel.math.FlxPoint;
+import haxe.Timer;
 
 import utils.MapUtils;
 import utils.MapUtils.Path;
@@ -51,6 +52,7 @@ class Unit extends Entity {
 
 	public var battle: BattleState;
 	public var hpBar: ProgressBar;
+	public var missedAttack: FlxSprite;
 
 	public function new(posX: Int, posY: Int, colour: FlxColor) {
 		offsetX = -2;
@@ -93,6 +95,11 @@ class Unit extends Entity {
 		hpBar.hideIndicator();
 		for (member in hpBar.members)
 			add(member);
+
+		missedAttack = new FlxSprite(posX * ViewPort.tileSize + offsetX, (posY + 1) * ViewPort.tileSize - 9);
+		missedAttack.loadGraphic("assets/images/hud-miss.png", 20, 8);
+		missedAttack.visible = false;
+		add(missedAttack);
 	}
 
 	public function useItem(item: Item) {
@@ -167,7 +174,7 @@ class Unit extends Entity {
 			if (callback != null)
 				sprite.path.onComplete = callback;
 			else
-				hpBar.move(pos.x * ViewPort.tileSize, (posY + 1) * ViewPort.tileSize - 1);
+				moveElems(pos.x, posY);
 
 			sprite.animation.play("walk-lr");
 			sprite.path.start(200);
@@ -178,11 +185,17 @@ class Unit extends Entity {
 		} else {
 			sprite.x = pos.x * ViewPort.tileSize + offsetX;
 			sprite.y = pos.y * ViewPort.tileSize + offsetY;
-			hpBar.move(pos.x * ViewPort.tileSize, (posY + 1) * ViewPort.tileSize - 1);
+			moveElems(pos.x, posY);
 
 			if (callback != null)
 				callback(null);
 		}
+	}
+
+	public function moveElems(posX: Int, posY: Int) {
+		hpBar.move(pos.x * ViewPort.tileSize, (posY + 1) * ViewPort.tileSize - 1);
+		missedAttack.x = posX * ViewPort.tileSize + offsetX;
+		missedAttack.y = (posY + 1) * ViewPort.tileSize - 9;
 	}
 
 	override public function update(elapsed: Float) {
@@ -321,8 +334,8 @@ class Unit extends Entity {
 		var xDir: Int = Utils.sign0(enemy.pos.x - pos.x);
 		var yDir: Int = Utils.sign0(enemy.pos.y - pos.y);
 
-		FlxTween.tween(this, { x: x + xDir * 4, y: y + yDir * 4 }, 0.1, { onComplete: function(tween: FlxTween) {
-			FlxTween.tween(this, { x: x + xDir * -4, y: y + yDir * -4 }, 0.1);
+		FlxTween.tween(sprite, { x: sprite.x + xDir * 4, y: sprite.y + yDir * 4 }, 0.1, { onComplete: function(tween: FlxTween) {
+			FlxTween.tween(sprite, { x: sprite.x + xDir * -4, y: sprite.y + yDir * -4 }, 0.1);
 		} });
 
 		if (getAccuracy(enemy) >= Std.random(100)) {
@@ -336,9 +349,14 @@ class Unit extends Entity {
 			});
 		} else {
 			// Attack misses
-			// TODO: indicate missed attack
-			trace(name + " misses!");
-			callback();
+			enemy.missedAttack.visible = true;
+			FlxTween.tween(enemy.missedAttack, { y: enemy.missedAttack.y - 8 }, 0.1, { onComplete: function(_) {
+				Timer.delay(function() {
+					enemy.missedAttack.visible = false;
+					enemy.missedAttack.y += 8;
+					callback();
+				}, 600);
+			}});
 		}
 	}
 
@@ -397,6 +415,7 @@ enum UnitStatus {
 	STATUS_SELECTED;
 	STATUS_MOVING;
 	STATUS_MOVED;
+	STATUS_ATTACK_READY;
 	STATUS_ATTACKING;
 	STATUS_DONE;
 }

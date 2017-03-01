@@ -149,7 +149,7 @@ class BattleCursor extends FlxSprite {
 		super.update(elapsed);
 	}
 
-	public function show(status: Int) {
+	public function show(status: Int = STATUS_FREE) {
 		frozen = false;
 		visible = true;
 		selectedTile = 0;
