@@ -1351,6 +1351,7 @@
     <property name="skl" type="int" value="10"/>
     <property name="spd" type="int" value="7"/>
     <property name="str" type="int" value="8"/>
+    <property name="weapons" value="sword-iron;axe-iron"/>
    </properties>
   </object>
   <object id="73" name="Pfers" type="Knight" x="336" y="208" width="16" height="16">
@@ -1364,6 +1365,7 @@
     <property name="skl" type="int" value="10"/>
     <property name="spd" type="int" value="7"/>
     <property name="str" type="int" value="8"/>
+    <property name="weapons" value="sword-iron;lance-iron"/>
    </properties>
   </object>
   <object id="74" name="Peferovu" type="Knight" x="368" y="208" width="16" height="16">
@@ -1377,6 +1379,7 @@
     <property name="skl" type="int" value="10"/>
     <property name="spd" type="int" value="7"/>
     <property name="str" type="int" value="8"/>
+    <property name="weapons" value="bow-iron"/>
    </properties>
   </object>
  </objectgroup>
@@ -1392,6 +1395,7 @@
     <property name="skl" type="int" value="8"/>
     <property name="spd" type="int" value="8"/>
     <property name="str" type="int" value="10"/>
+    <property name="weapons" value="axe-iron"/>
    </properties>
   </object>
   <object id="75" name="RoRó" type="Fighter" x="272" y="111" width="16" height="16">
@@ -1405,6 +1409,7 @@
     <property name="skl" type="int" value="8"/>
     <property name="spd" type="int" value="7"/>
     <property name="str" type="int" value="10"/>
+    <property name="weapons" value="sword-iron"/>
    </properties>
   </object>
   <object id="76" name="Papa-Ró" type="Fighter" x="271" y="157.5" width="16" height="16">
@@ -1418,6 +1423,7 @@
     <property name="skl" type="int" value="8"/>
     <property name="spd" type="int" value="20"/>
     <property name="str" type="int" value="10"/>
+    <property name="weapons" value="lance-iron"/>
    </properties>
   </object>
  </objectgroup>

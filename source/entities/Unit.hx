@@ -225,15 +225,20 @@ class Unit extends Entity {
 		super.update(elapsed);
 	}
 
-	public function getPhysicalPower(): Int {
+	public function getPhysicalPower(enemy: Unit): Int {
 		// Physical Attack = Strength + (Weapon Might + Weapon Triangle Bonus) X Weapon effectiveness + Support Bonus
 		var physicalPower: Int = cs.str;
+		var weaponBonus: Int = 0;
 
 		if (equippedWeapon != null) {
-			physicalPower += (equippedWeapon.might + 0) * 1;
+			weaponBonus += equippedWeapon.might;
 		}
 
-		return physicalPower;
+		if (enemy.equippedWeapon != null) {
+			weaponBonus += Weapon.getDamageBonus(equippedWeapon, enemy.equippedWeapon);
+		}
+
+		return physicalPower + weaponBonus * 1;
 	}
 
 	public function getMagicalPower(): Int {
@@ -282,11 +287,12 @@ class Unit extends Entity {
 
 	public function getAccuracy(enemy: Unit): Int {
 		// Accuracy = Hit Rate (Attacker) - Evade (Defender) + Triangle Bonus
-		return Utils.min(100, Utils.max(0, getHitRate() - enemy.getEvasionRate() + 0));
+		return Utils.min(100, Utils.max(0, getHitRate() - enemy.getEvasionRate() +
+			Weapon.getAccuracyBonus(equippedWeapon, enemy.equippedWeapon)));
 	}
 
 	public function calcPhysicalDamage(enemy: Unit): Int {
-		return Utils.max(getPhysicalPower() - enemy.getDefensePower(), 0);
+		return Utils.max(getPhysicalPower(enemy) - enemy.getDefensePower(), 0);
 	}
 
 	public function calcMagicalDamage(enemy: Unit): Int {

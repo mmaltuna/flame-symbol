@@ -101,79 +101,6 @@ class BattleState extends FlxTransitionableState {
 		for (unit in army2)
 			add(unit);
 
-		var unit1: Unit = new Unit(20, 10, FlxColor.BLUE);
-		unit1.os.hp = 26;
-		unit1.os.str = 7;
-		unit1.os.mgc = 1;
-		unit1.os.skl = 9;
-		unit1.os.spd = 20;
-		unit1.os.lck = 3;
-		unit1.os.def = 5;
-		unit1.os.res = 2;
-		unit1.os.mov = 6;
-		unit1.name = "Johan";
-		unit1.type = "Archer";
-		unit1.resetStats();
-		army1.set(MapUtils.coordsToIndex(unit1.pos.x, unit1.pos.y), unit1);
-		add(unit1);
-
-		var ironSword = new Weapon(0, 0);
-		ironSword.hitRate = 90;
-		ironSword.might = 5;
-		ironSword.weight = 5;
-		ironSword.minRange = 1;
-		ironSword.maxRange = 1;
-
-		var ironBow = new Weapon(0, 0);
-		ironBow.hitRate = 85;
-		ironBow.might = 6;
-		ironBow.weight = 5;
-		ironBow.minRange = 2;
-		ironBow.maxRange = 2;
-
-		unit1.items.push(ironBow);
-		unit1.equipWeapon(ironBow);
-
-		/*var unit2: Unit = new Unit(4, 4, 2);
-		unit2.os.hp = 30;
-		unit2.os.str = 7;
-		unit2.os.mgc = 1;
-		unit2.os.skl = 6;
-		unit2.os.spd = 8;
-		unit2.os.lck = 3;
-		unit2.os.def = 5;
-		unit2.os.res = 2;
-		unit2.os.mov = 5;
-		unit2.name = "Pferv";
-		unit2.type = "General";
-		unit2.resetStats();
-		army2.set(MapUtils.coordsToIndex(unit2.pos.x, unit2.pos.y), unit2);
-		add(unit2);
-
-		unit2.items.push(ironSword);
-		unit2.equippedWeapon = ironSword;
-
-		var unit3: Unit = new Unit(5, 5, 2);
-		unit3.os.hp = 23;
-		unit3.os.str = 7;
-		unit3.os.mgc = 1;
-		unit3.os.skl = 10;
-		unit3.os.spd = 8;
-		unit3.os.lck = 3;
-		unit3.os.def = 5;
-		unit3.os.res = 2;
-		unit3.os.mov = 7;
-		unit3.name = "Peferovu";
-		unit3.type = "Archer";
-		unit3.atkRangeMin = 2;
-		unit3.atkRangeMax = 2;
-		unit3.resetStats();
-		army2.set(MapUtils.coordsToIndex(unit3.pos.x, unit3.pos.y), unit3);
-		add(unit3);
-
-		unit3.items.push(ironBow);
-		unit3.equippedWeapon = ironBow;*/
-
 		cursor = new BattleCursor(6, 4);
 		add(cursor);
 
@@ -307,7 +234,7 @@ class BattleState extends FlxTransitionableState {
 		} else if (selectedUnit != null && selectedUnit.status == UnitStatus.STATUS_ATTACK_READY) {
 			selectedUnit.status = UnitStatus.STATUS_ATTACKING;
 			Utils.clearSpriteGroup(attackRange);
-			
+
 			onAttack(function() {
 				cursor.show();
 				battleHud.hide();

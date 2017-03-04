@@ -1,0 +1,52 @@
+{
+	"sword-iron": {
+		"name": "Iron Sword",
+		"might": 5,
+		"weight": 5,
+		"hitRate": 90,
+		"crtRate": 0,
+		"uses": 46,
+		"minRange": 1,
+		"maxRange": 1,
+		"rank": 5,
+		"class": "sword"
+	},
+
+	"axe-iron": {
+		"name": "Iron Axe",
+		"might": 8,
+		"weight": 10,
+		"hitRate": 65,
+		"crtRate": 0,
+		"uses": 45,
+		"minRange": 1,
+		"maxRange": 1,
+		"rank": 5,
+		"class": "axe"
+	},
+
+	"lance-iron": {
+		"name": "Iron Lance",
+		"might": 7,
+		"weight": 8,
+		"hitRate": 80,
+		"crtRate": 0,
+		"uses": 45,
+		"minRange": 1,
+		"maxRange": 1,
+		"rank": 5,
+		"class": "lance"
+	},
+
+	"bow-iron": {
+		"name": "Iron Bow",
+		"might": 6,
+		"weight": 5,
+		"hitRate": 85,
+		"crtRate": 0,
+		"minRange": 2,
+		"maxRange": 2,
+		"rank": 5,
+		"class": "bow"
+	}
+}
