@@ -1365,7 +1365,7 @@
     <property name="skl" type="int" value="10"/>
     <property name="spd" type="int" value="7"/>
     <property name="str" type="int" value="8"/>
-    <property name="weapons" value="sword-iron;lance-iron"/>
+    <property name="weapons" value="sword-iron;lance-iron;axe-iron;bow-iron"/>
    </properties>
   </object>
   <object id="74" name="Peferovu" type="Knight" x="368" y="208" width="16" height="16">
@@ -1387,7 +1387,7 @@
   <object id="72" name="Roger" type="Fighter" x="320" y="128" width="16" height="16">
    <properties>
     <property name="def" type="int" value="3"/>
-    <property name="hp" type="int" value="4"/>
+    <property name="hp" type="int" value="27"/>
     <property name="lck" type="int" value="5"/>
     <property name="mgc" type="int" value="2"/>
     <property name="mov" type="int" value="6"/>

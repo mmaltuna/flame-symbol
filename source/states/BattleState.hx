@@ -18,6 +18,7 @@ import ui.BattleDialog;
 import ui.BattleCursor;
 import ui.BattleMenu;
 import ui.ActionBattleDialog;
+import ui.InventoryDialog;
 import ui.CombatBattleDialog;
 import ui.TerrainBattleDialog;
 import ui.UnitBattleDialog;
@@ -45,6 +46,7 @@ class BattleState extends FlxTransitionableState {
 	public var unitInfo: UnitBattleDialog;
 	public var terrainInfo: TerrainBattleDialog;
 	public var actionDialog: ActionBattleDialog;
+	public var inventoryDialog: InventoryDialog;
 	public var combatDialog: CombatBattleDialog;
 	public var menu: BattleMenu;
 	public var battleHud: BattleHud;
@@ -111,8 +113,11 @@ class BattleState extends FlxTransitionableState {
 		terrainInfo = new TerrainBattleDialog(BattleDialog.QUADRANT_BOTTOM_RIGHT);
 		add(terrainInfo);
 
-		actionDialog = new ActionBattleDialog(BattleDialog.QUADRANT_TOP_RIGHT, ["Attack", "Wait", "Cancel"]);
+		actionDialog = new ActionBattleDialog(BattleDialog.QUADRANT_TOP_RIGHT, ["Attack", "Items", "Wait"]);
 		add(actionDialog);
+
+		inventoryDialog = new InventoryDialog(BattleDialog.QUADRANT_TOP_RIGHT, []);
+		add(inventoryDialog);
 
 		combatDialog = new CombatBattleDialog(BattleDialog.QUADRANT_TOP_RIGHT);
 		add(combatDialog);
@@ -164,6 +169,7 @@ class BattleState extends FlxTransitionableState {
 		unitInfo.setOffset(x, y);
 		terrainInfo.setOffset(x, y);
 		actionDialog.setOffset(x, y);
+		inventoryDialog.setOffset(x, y);
 		combatDialog.setOffset(x, y);
 
 		FlxG.camera.scroll.x = x;
@@ -227,8 +233,12 @@ class BattleState extends FlxTransitionableState {
 				case "Wait":
 					onWait();
 
-				case "Cancel":
-					onCancel();
+				case "Items":
+					actionDialog.hide();
+					inventoryDialog.setItems(selectedUnit.items);
+					inventoryDialog.show();
+
+					selectedUnit.status = UnitStatus.STATUS_ON_INVENTORY;
 			}
 
 		} else if (selectedUnit != null && selectedUnit.status == UnitStatus.STATUS_ATTACK_READY) {
@@ -305,6 +315,11 @@ class BattleState extends FlxTransitionableState {
 			selectedUnit.status = UnitStatus.STATUS_MOVED;
 
 			drawAttackRange();
+		} else if (selectedUnit != null && selectedUnit.status == UnitStatus.STATUS_ON_INVENTORY) {
+			inventoryDialog.hide();
+			actionDialog.show();
+
+			selectedUnit.status = UnitStatus.STATUS_MOVED;
 		} else if (menu.visible) {
 			menu.hide();
 			cursor.show(BattleCursor.STATUS_FREE);
@@ -384,6 +399,13 @@ class BattleState extends FlxTransitionableState {
 			} else {
 				Utils.clearSpriteGroup(attackRange);
 			}
+		}
+
+		if (selectedUnit != null && selectedUnit.status == UnitStatus.STATUS_ON_INVENTORY) {
+			if (goingUp)
+				inventoryDialog.prevItem();
+			else
+				inventoryDialog.nextItem();
 		}
 
 		if (menu.visible) {

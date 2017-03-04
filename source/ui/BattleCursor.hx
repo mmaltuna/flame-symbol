@@ -36,7 +36,7 @@ class BattleCursor extends FlxSprite {
 
 	public function new(posX: Int, posY: Int) {
 		super(posX * ViewPort.tileSize - 2, posY * ViewPort.tileSize - 2);
-		loadGraphic("assets/images/cursor20.png", true, 20, 20);
+		loadGraphic("assets/images/ui/cursor.png", true, 20, 20);
 		animation.add("idle", [0, 1], 2, true);
 		deselect();
 

@@ -5,9 +5,9 @@ import flixel.group.FlxGroup;
 
 class Entity extends FlxTypedGroup<FlxSprite> {
 
-	private var x: Int;
-	private var y: Int;
-	private var sprite: FlxSprite;
+	public var x: Int;
+	public var y: Int;
+	public var sprite: FlxSprite;
 
 	public function new(x: Int, y: Int) {
 		super();

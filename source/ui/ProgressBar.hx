@@ -53,7 +53,7 @@ class ProgressBar extends FlxTypedGroup<FlxSprite> {
 		borderColour = FlxColor.WHITE;
 
 		numberOfSteps = border ? width - 2 : width;
-		currentStep = numberOfSteps - 1;
+		currentStep = numberOfSteps;
 
 		bar = new FlxSprite(x, y).makeGraphic(width, height);
 		add(bar);
@@ -66,8 +66,9 @@ class ProgressBar extends FlxTypedGroup<FlxSprite> {
 		bg = new BitmapData(Std.int(bgRect.width), Std.int(bgRect.height), false, backgroundColour);
 		fg = new BitmapData(Std.int(bgRect.width), Std.int(bgRect.height), false, foregroundColour);
 
-		indicator = new FlxText(x + width, y - 3, 20, Std.string(currentValue));	// TODO: param this
-		indicator.setFormat("assets/fonts/pixelmini.ttf", FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		indicator = new FlxText(x + width, y - 9, 12, Std.string(currentValue));	// TODO: param this
+		indicator.setFormat("assets/fonts/font-pixel-7.ttf", 16, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		indicator.alignment = FlxTextAlign.RIGHT;
 		add(indicator);
 
 		repaint();
@@ -172,5 +173,30 @@ class ProgressBar extends FlxTypedGroup<FlxSprite> {
 
 		bar.x = newX;
 		bar.y = newY;
+	}
+
+	public function setColour(colour: FlxColor, elemName: String) {
+		var elem: BitmapData = null;
+		var rect: Rectangle = null;
+
+		if (elemName == "foreground") {
+			elem = fg;
+			rect = fgRect;
+			foregroundColour = colour;
+		} else if (elemName == "background") {
+			elem = bg;
+			rect = bgRect;
+			backgroundColour = colour;
+		}
+
+		if (elem != null && rect != null) {
+			elem.fillRect(rect, colour);
+		}
+
+		repaint();
+	}
+
+	public function getPercentage(): Float {
+		return currentStep * 100 / numberOfSteps;
 	}
 }

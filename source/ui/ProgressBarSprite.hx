@@ -56,7 +56,7 @@ class ProgressBarSprite extends FlxTypedGroup<FlxSprite> {
 		}
 
 		indicator = new FlxText(x + numberOfSteps * 2, y - 3, 20, Std.string(currentValue));
-		indicator.setFormat("assets/fonts/pixelmini.ttf", FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		indicator.setFormat("assets/fonts/font-pixel-7.ttf", 16, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		add(indicator);
 
 		updateParams();

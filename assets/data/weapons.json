@@ -1,6 +1,6 @@
 {
 	"sword-iron": {
-		"name": "Iron Sword",
+		"name": "Iron sword",
 		"might": 5,
 		"weight": 5,
 		"hitRate": 90,
@@ -9,11 +9,12 @@
 		"minRange": 1,
 		"maxRange": 1,
 		"rank": 5,
-		"class": "sword"
+		"class": "sword",
+		"gfx-path": "assets/images/weapons/sword-iron.png"
 	},
 
 	"axe-iron": {
-		"name": "Iron Axe",
+		"name": "Iron axe",
 		"might": 8,
 		"weight": 10,
 		"hitRate": 65,
@@ -22,11 +23,12 @@
 		"minRange": 1,
 		"maxRange": 1,
 		"rank": 5,
-		"class": "axe"
+		"class": "axe",
+		"gfx-path": "assets/images/weapons/axe-iron.png"
 	},
 
 	"lance-iron": {
-		"name": "Iron Lance",
+		"name": "Iron lance",
 		"might": 7,
 		"weight": 8,
 		"hitRate": 80,
@@ -35,18 +37,21 @@
 		"minRange": 1,
 		"maxRange": 1,
 		"rank": 5,
-		"class": "lance"
+		"class": "lance",
+		"gfx-path": "assets/images/weapons/lance-iron.png"
 	},
 
 	"bow-iron": {
-		"name": "Iron Bow",
+		"name": "Iron bow",
 		"might": 6,
 		"weight": 5,
 		"hitRate": 85,
 		"crtRate": 0,
+		"uses": 45,
 		"minRange": 2,
 		"maxRange": 2,
 		"rank": 5,
-		"class": "bow"
+		"class": "bow",
+		"gfx-path": "assets/images/weapons/bow-iron.png"
 	}
 }

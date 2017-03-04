@@ -11,11 +11,6 @@ class Weapon extends Item {
 	public var maxRange: Int;
 
 	public var rank: Int;		// 5 = E, 4 = D, 3 = C, 2 = B, 1 = A, 0 = S
-	public var maxUses: Int;
-	public var currentUses: Int;
-
-	public var name: String;
-	public var weaponClass: String;
 
 	public function new(x: Int, y: Int) {
 		super(x, y);
@@ -24,17 +19,17 @@ class Weapon extends Item {
 	public static function getDamageBonus(weaponA: Weapon, weaponB: Weapon): Int {
 		var damageBonus: Int = 0;
 
-		if (weaponA.weaponClass == "sword" && weaponB.weaponClass == "lance") {
+		if (weaponA.type == "sword" && weaponB.type == "lance") {
 			damageBonus = -1;
-		} else if (weaponA.weaponClass == "sword" && weaponB.weaponClass == "axe") {
+		} else if (weaponA.type == "sword" && weaponB.type == "axe") {
 			damageBonus = 1;
-		} else if (weaponA.weaponClass == "lance" && weaponB.weaponClass == "sword") {
+		} else if (weaponA.type == "lance" && weaponB.type == "sword") {
 			damageBonus = 1;
-		} else if (weaponA.weaponClass == "lance" && weaponB.weaponClass == "axe") {
+		} else if (weaponA.type == "lance" && weaponB.type == "axe") {
 			damageBonus = -1;
-		} else if (weaponA.weaponClass == "axe" && weaponB.weaponClass == "sword") {
+		} else if (weaponA.type == "axe" && weaponB.type == "sword") {
 			damageBonus = -1;
-		} else if (weaponA.weaponClass == "axe" && weaponB.weaponClass == "lance") {
+		} else if (weaponA.type == "axe" && weaponB.type == "lance") {
 			damageBonus = 1;
 		}
 
@@ -44,17 +39,17 @@ class Weapon extends Item {
 	public static function getAccuracyBonus(weaponA: Weapon, weaponB: Weapon): Int {
 		var accuracyBonus: Int = 0;
 
-		if (weaponA.weaponClass == "sword" && weaponB.weaponClass == "lance") {
+		if (weaponA.type == "sword" && weaponB.type == "lance") {
 			accuracyBonus = -15;
-		} else if (weaponA.weaponClass == "sword" && weaponB.weaponClass == "axe") {
+		} else if (weaponA.type == "sword" && weaponB.type == "axe") {
 			accuracyBonus = 15;
-		} else if (weaponA.weaponClass == "lance" && weaponB.weaponClass == "sword") {
+		} else if (weaponA.type == "lance" && weaponB.type == "sword") {
 			accuracyBonus = 15;
-		} else if (weaponA.weaponClass == "lance" && weaponB.weaponClass == "axe") {
+		} else if (weaponA.type == "lance" && weaponB.type == "axe") {
 			accuracyBonus = -15;
-		} else if (weaponA.weaponClass == "axe" && weaponB.weaponClass == "sword") {
+		} else if (weaponA.type == "axe" && weaponB.type == "sword") {
 			accuracyBonus = -15;
-		} else if (weaponA.weaponClass == "axe" && weaponB.weaponClass == "lance") {
+		} else if (weaponA.type == "axe" && weaponB.type == "lance") {
 			accuracyBonus = 15;
 		}
 

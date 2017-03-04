@@ -115,7 +115,9 @@ class Level extends TiledMap {
 		weapon.maxUses = Reflect.field(weaponData, "uses");
 		weapon.currentUses = weapon.maxUses;
 		weapon.name = Reflect.field(weaponData, "name");
-		weapon.weaponClass = Reflect.field(weaponData, "class");
+		weapon.type = Reflect.field(weaponData, "class");
+
+		weapon.sprite.loadGraphic(Reflect.field(weaponData, "gfx-path"), 16, 16);
 
 		return weapon;
 	}

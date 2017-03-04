@@ -43,21 +43,21 @@ class BattleMenu extends FlxTypedGroup<FlxSprite> {
 		overlay.makeGraphic(ViewPort.width, ViewPort.height, 0x55000000);
 		add(overlay);
 
-		loadBackground("assets/images/bg-menu-1.png", 70, 18);
+		loadBackground("assets/images/ui/bg-menu-1.png", 70, 18);
 
 		x = marginLeft;
 		y = marginTop;
 
 		menuEntries = new Array<FlxText>();
 		for (index in 0 ... menu.length) {
-			var textItem = new FlxText(x + 14, y + marginTop + index * lineHeight, menu[index].entryLabel);
-			textItem.setFormat("assets/fonts/pixelmix.ttf", FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+			var textItem = new FlxText(x + 14, y + marginTop + index * lineHeight - 3, menu[index].entryLabel);
+			textItem.setFormat("assets/fonts/font-pixel-7.ttf", 16, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 			menuEntries.push(textItem);
 			add(textItem);
 		}
 
 		arrow = new FlxSprite(x, y);
-		arrow.loadGraphic("assets/images/arrow12.png", true, 12, 12);
+		arrow.loadGraphic("assets/images/ui/arrow.png", true, 12, 12);
 		arrow.animation.add("default", [0, 1], 2, true);
 		arrow.animation.play("default");
 		add(arrow);
@@ -95,7 +95,7 @@ class BattleMenu extends FlxTypedGroup<FlxSprite> {
 
 		for (i in 0 ... menuEntries.length) {
 			menuEntries[i].x = marginLeft + 14;
-			menuEntries[i].y = marginTop + margin + i * lineHeight;
+			menuEntries[i].y = marginTop + margin + i * lineHeight - 3;
 		}
 
 		background.x = marginLeft;

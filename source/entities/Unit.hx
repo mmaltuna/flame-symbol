@@ -93,11 +93,12 @@ class Unit extends Entity {
 
 		hpBar = new ProgressBar(posX * ViewPort.tileSize, (posY + 1) * ViewPort.tileSize - 1, ViewPort.tileSize, 1, 0, 100, false);
 		hpBar.hideIndicator();
+		hpBar.setColour(FlxColor.GREEN, "foreground");
 		for (member in hpBar.members)
 			add(member);
 
 		missedAttack = new FlxSprite(posX * ViewPort.tileSize + offsetX, (posY + 1) * ViewPort.tileSize - 9);
-		missedAttack.loadGraphic("assets/images/hud-miss.png", 20, 8);
+		missedAttack.loadGraphic("assets/images/ui/hud-miss.png", 20, 8);
 		missedAttack.visible = false;
 		add(missedAttack);
 	}
@@ -387,6 +388,14 @@ class Unit extends Entity {
 	public function setHP(hp: Int) {
 		cs.hp = hp;
 		hpBar.setValue(cs.hp);
+
+		var hpPercentage: Float = hpBar.getPercentage();
+		if (hpPercentage >= 66)
+			hpBar.setColour(FlxColor.GREEN, "foreground");
+		else if (hpPercentage < 66 && hpPercentage >= 33)
+			hpBar.setColour(FlxColor.YELLOW, "foreground");
+		else if (hpPercentage < 33)
+			hpBar.setColour(FlxColor.RED, "foreground");
 	}
 
 	public function resetStats() {
@@ -423,6 +432,7 @@ enum UnitStatus {
 	STATUS_MOVED;
 	STATUS_ATTACK_READY;
 	STATUS_ATTACKING;
+	STATUS_ON_INVENTORY;
 	STATUS_DONE;
 }
 

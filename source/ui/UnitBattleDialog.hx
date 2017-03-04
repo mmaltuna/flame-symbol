@@ -16,23 +16,23 @@ class UnitBattleDialog extends BattleDialog {
 	private var unitMaxHP: FlxText;
 
 	public function new(quadrant: Int) {
-		super(7, 4, 4, quadrant);
+		super(56, 32, 4, quadrant);
 
-		loadBackground("assets/images/bg-unit-dialog.png", 56, 32);
+		loadBackground("assets/images/ui/bg-unit-dialog.png", 56, 32);
 
-		unitName = new FlxText(x + 4, y + 4, "Unit name");
-		unitName.setFormat("assets/fonts/pixelmix.ttf", FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		unitName = new FlxText(x + 4, y, "Unit name");
+		unitName.setFormat("assets/fonts/font-pixel-7.ttf", 16, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		add(unitName);
 
-		unitHP = new FlxText(x + 4, y + 16, 14, "0");
+		unitHP = new FlxText(x + 4, y + 11, 12, "0");
 		unitHP.alignment = FlxTextAlign.RIGHT;
-		unitHP.setFormat("assets/fonts/pixelmini.ttf", FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		unitHP.setFormat("assets/fonts/font-pixel-7.ttf", 16, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		add(unitHP);
 
-		unitMaxHP = new FlxText(x + 14, y + 16, 36, "/0 HP");
+		unitMaxHP = new FlxText(x + 12, y + 11, 30, "/0 HP");
 		unitMaxHP.wordWrap = false;
 		unitMaxHP.alignment = FlxTextAlign.RIGHT;
-		unitMaxHP.setFormat("assets/fonts/pixelmini.ttf", FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		unitMaxHP.setFormat("assets/fonts/font-pixel-7.ttf", 16, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		add(unitMaxHP);
 	}
 

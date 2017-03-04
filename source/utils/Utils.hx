@@ -1,6 +1,7 @@
 package utils;
 
 import flixel.FlxSprite;
+import flixel.text.FlxText;
 import flixel.group.FlxGroup;
 
 import utils.data.TilePoint;
@@ -38,6 +39,13 @@ class Utils {
 	public static function clearSpriteArray(array: Array<FlxSprite>) {
 		while (array.length > 0) {
 			var sprite: FlxSprite = array.pop();
+			sprite.destroy();
+		}
+	}
+
+	public static function clearTextArray(array: Array<FlxText>) {
+		while (array.length > 0) {
+			var sprite: FlxText = array.pop();
 			sprite.destroy();
 		}
 	}

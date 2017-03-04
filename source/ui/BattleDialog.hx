@@ -43,8 +43,9 @@ class BattleDialog extends FlxTypedGroup<FlxSprite> {
 
 		battle = BattleState.getInstance();
 
-		this.w = w;
-		this.h = h;
+		bgWidth = w;
+		bgHeight = h;
+
 		this.m = m;
 		this.quadrant = quadrant;
 
@@ -62,8 +63,6 @@ class BattleDialog extends FlxTypedGroup<FlxSprite> {
 	}
 
 	public function init() {
-		bgWidth = w * bgTileSize;
-		bgHeight = h * bgTileSize;
 		bgX = x;
 		bgY = y;
 	}

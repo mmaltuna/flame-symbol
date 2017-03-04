@@ -14,20 +14,20 @@ class TerrainBattleDialog extends BattleDialog {
 	private var terrainAvd: FlxText;
 
 	public function new(quadrant: Int) {
-		super(5, 4, 4, quadrant);
+		super(40, 32, 4, quadrant);
 
-		loadBackground("assets/images/bg-terrain.png", 40, 32);
+		loadBackground("assets/images/ui/bg-terrain-dialog.png", 40, 34);
 
-		terrainName = new FlxText(x + 4, y + 2, "");
-		terrainName.setFormat("assets/fonts/pixelmini.ttf", FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		terrainName = new FlxText(x + 4, y - 2, "");
+		terrainName.setFormat("assets/fonts/font-pixel-7.ttf", 16, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		add(terrainName);
 
-		terrainDef = new FlxText(x + 4, y + 11, "Def: 0");
-		terrainDef.setFormat("assets/fonts/pixelmini.ttf", FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		terrainDef = new FlxText(x + 4, y + 7, "Def: 0");
+		terrainDef.setFormat("assets/fonts/font-pixel-7.ttf", 16, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		add(terrainDef);
 
-		terrainAvd = new FlxText(x + 4, y + 19, "Avd: 0");
-		terrainAvd.setFormat("assets/fonts/pixelmini.ttf", FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		terrainAvd = new FlxText(x + 4, y + 16, "Avd: 0");
+		terrainAvd.setFormat("assets/fonts/font-pixel-7.ttf", 16, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		add(terrainAvd);
 	}
 

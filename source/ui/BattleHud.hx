@@ -35,7 +35,7 @@ class BattleHud extends FlxTypedGroup<FlxSprite> {
 
 		battle = BattleState.getInstance();
 
-		loadBackground("assets/images/bg-battlehud.png", 140, 24);
+		loadBackground("assets/images/ui/bg-battlehud.png", 140, 24);
 
 		x = marginLeft;
 		y = marginTop;
@@ -48,13 +48,13 @@ class BattleHud extends FlxTypedGroup<FlxSprite> {
 		for (member in hpBar2.members)
 			add(member);
 
-		name1 = new FlxText(x + 10, y + 3, 50, Std.string("name1"));
-		name1.setFormat("assets/fonts/pixelmini.ttf", FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		name1 = new FlxText(x + 10, y - 1, 50, Std.string("name1"));
+		name1.setFormat("assets/fonts/font-pixel-7.ttf", 16, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		name1.alignment = FlxTextAlign.CENTER;
 		add(name1);
 
-		name2 = new FlxText(x + 80, y + 3, 50, Std.string("name2"));
-		name2.setFormat("assets/fonts/pixelmini.ttf", FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		name2 = new FlxText(x + 80, y - 1, 50, Std.string("name2"));
+		name2.setFormat("assets/fonts/font-pixel-7.ttf", 16, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		name2.alignment = FlxTextAlign.CENTER;
 		add(name2);
 
