@@ -104,12 +104,11 @@ class Unit extends Entity {
 	}
 
 	public function useItem(item: Item) {
-		var itemClass: String = Type.getClassName(Type.getClass(item));
-		if (itemClass == "entities.Item") {
+		if (Weapon.isWeapon(item)) {
+			equipWeapon(cast(item, Weapon));
+		} else {
 			trace(item.name + " is an item");
-		} else if (itemClass == "entities.Weapon") {
-		   equipWeapon(cast(item, Weapon));
-	   }
+		}
 	}
 
 	public function equipWeapon(weapon: Weapon) {
@@ -442,6 +441,7 @@ enum UnitStatus {
 	STATUS_ATTACK_READY;
 	STATUS_ATTACKING;
 	STATUS_ON_INVENTORY;
+	STATUS_ON_SELECT_WEAPON;
 	STATUS_DONE;
 }
 

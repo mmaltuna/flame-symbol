@@ -6,6 +6,7 @@ import flixel.FlxObject;
 import flixel.util.FlxColor;
 
 import entities.Item;
+import entities.Weapon;
 import entities.Unit;
 import utils.Utils;
 
@@ -23,6 +24,7 @@ class InventoryDialog extends BattleDialog {
 	private var itemNames: Array<FlxText>;
 	private var remainingUses: Array<FlxText>;
 	private var enabledEntries: Array<Bool>;
+	private var items: Array<Item>;
 	private var arrow: FlxSprite;
 
 	private var width: Int;
@@ -37,6 +39,7 @@ class InventoryDialog extends BattleDialog {
 		itemNames = new Array<FlxText>();
 		remainingUses = new Array<FlxText>();
 		enabledEntries = new Array<Bool>();
+		items = new Array<Item>();
 
 		loadBackground(bgPath, width, height);
 
@@ -74,7 +77,7 @@ class InventoryDialog extends BattleDialog {
 	}
 
 	private function highlight(pos: Int) {
-		if (pos >= 0 && pos < unit.items.length) {
+		if (pos >= 0 && pos < items.length) {
 			if (arrow.facing == FlxObject.RIGHT)
 				arrow.x = vpX + x - 12;
 			else
@@ -85,25 +88,31 @@ class InventoryDialog extends BattleDialog {
 	}
 
 	public function nextItem() {
-		var newPos = (selected + 1) % unit.items.length;
+		var newPos = (selected + 1) % items.length;
 		highlight(newPos);
 	}
 
 	public function prevItem() {
 		var newPos = selected - 1;
 		if (newPos == -1)
-			newPos = unit.items.length - 1;
+			newPos = items.length - 1;
 
 		highlight(newPos);
 	}
 
-	public function select() {
-		var item: Item = unit.items[selected];
+	public function select(): Bool {
+		var item: Item = items[selected];
 		if (enabledEntries[selected]) {
 			unit.useItem(item);
 			refresh();
 			highlight(0);
 		}
+
+		return enabledEntries[selected];
+	}
+
+	public function getHighlighted(): Item {
+		return items[selected];
 	}
 
 	override public function show() {
@@ -131,29 +140,36 @@ class InventoryDialog extends BattleDialog {
 		Utils.clearTextArray(itemNames);
 		Utils.clearTextArray(remainingUses);
 		enabledEntries.splice(0, enabledEntries.length);
+		items.splice(0, items.length);
 
 		var index = 0;
 		for (item in unit.items) {
-			enabledEntries.push(true);
+			if (unit.status == UnitStatus.STATUS_ON_INVENTORY ||
+				(unit.status == UnitStatus.STATUS_ON_SELECT_WEAPON && Weapon.isWeapon(item) &&
+				battle.getUnitsInAttackRange(unit, cast(item, Weapon)).length > 0)) {
 
-			var itemText = new FlxText(bgX + marginLeft, bgY + marginTopText + index * lineHeight, item.name);
-			itemText.setFormat("assets/fonts/font-pixel-7.ttf", 16, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-			itemNames.push(itemText);
-			add(itemText);
+				enabledEntries.push(true);
 
-			var usesText = new FlxText(bgX + marginLeft + 56, bgY + marginTopText + index * lineHeight,
-				12, Std.string(item.currentUses));
-			usesText.alignment = FlxTextAlign.RIGHT;
-			usesText.setFormat("assets/fonts/font-pixel-7.ttf", 16, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-			remainingUses.push(usesText);
-			add(usesText);
+				var itemText = new FlxText(bgX + marginLeft, bgY + marginTopText + index * lineHeight, item.name);
+				itemText.setFormat("assets/fonts/font-pixel-7.ttf", 16, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+				itemNames.push(itemText);
+				add(itemText);
 
-			item.move(Std.int(bgX + 4), Std.int(bgY + marginTop + index * lineHeight));
-			for (member in item.members) {
-				add(member);
+				var usesText = new FlxText(bgX + marginLeft + 56, bgY + marginTopText + index * lineHeight,
+					12, Std.string(item.currentUses));
+				usesText.alignment = FlxTextAlign.RIGHT;
+				usesText.setFormat("assets/fonts/font-pixel-7.ttf", 16, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+				remainingUses.push(usesText);
+				add(usesText);
+
+				item.move(Std.int(bgX + 4), Std.int(bgY + marginTop + index * lineHeight));
+				for (member in item.members) {
+					add(member);
+				}
+				items.push(item);
+
+				index++;
 			}
-
-			index++;
 		}
 	}
 }

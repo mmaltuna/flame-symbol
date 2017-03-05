@@ -69,4 +69,8 @@ class Weapon extends Item {
 
 		return accuracyBonus;
 	}
+
+	public static function isWeapon(item: Item): Bool {
+		return Type.getClassName(Type.getClass(item)) == "entities.Weapon";
+	}
 }

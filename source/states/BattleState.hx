@@ -217,28 +217,22 @@ class BattleState extends FlxTransitionableState {
 
 			switch actionDialog.select() {
 				case "Attack":
-					Utils.clearPointArray(cursor.activeTiles);
-					combatDialog.atkUnit = selectedUnit;
-					combatDialog.defUnit = unitsInAttackRange[0];
-
-					for (enemy in unitsInAttackRange)
-						cursor.activeTiles.push(new TilePoint(enemy.pos.x, enemy.pos.y));
-
-					cursor.show(BattleCursor.STATUS_CHOOSE);
+					selectedUnit.status = UnitStatus.STATUS_ON_SELECT_WEAPON;
 
 					actionDialog.hide();
-					combatDialog.show();
-					selectedUnit.status = UnitStatus.STATUS_ATTACK_READY;
+					inventoryDialog.setUnit(selectedUnit);
+					updateAttackRange(cast(inventoryDialog.getHighlighted(), Weapon));
+					inventoryDialog.show();
 
 				case "Wait":
 					onWait();
 
 				case "Items":
+					selectedUnit.status = UnitStatus.STATUS_ON_INVENTORY;
+
 					actionDialog.hide();
 					inventoryDialog.setUnit(selectedUnit);
 					inventoryDialog.show();
-
-					selectedUnit.status = UnitStatus.STATUS_ON_INVENTORY;
 			}
 
 		} else if (selectedUnit != null && selectedUnit.status == UnitStatus.STATUS_ATTACK_READY) {
@@ -253,6 +247,24 @@ class BattleState extends FlxTransitionableState {
 
 		} else if (selectedUnit != null && selectedUnit.status == UnitStatus.STATUS_ON_INVENTORY) {
 			inventoryDialog.select();
+
+		} else if (selectedUnit != null && selectedUnit.status == UnitStatus.STATUS_ON_SELECT_WEAPON) {
+			if (inventoryDialog.select()) {
+				Utils.clearPointArray(cursor.activeTiles);
+				combatDialog.atkUnit = selectedUnit;
+				combatDialog.defUnit = unitsInAttackRange[0];
+
+				for (enemy in unitsInAttackRange)
+					cursor.activeTiles.push(new TilePoint(enemy.pos.x, enemy.pos.y));
+
+				cursor.show(BattleCursor.STATUS_CHOOSE);
+
+				actionDialog.hide();
+				inventoryDialog.select();
+				inventoryDialog.hide();
+				combatDialog.show();
+				selectedUnit.status = UnitStatus.STATUS_ATTACK_READY;
+			}
 
 		} else if (selectedUnit == null && army.exists(MapUtils.coordsToIndex(posX, posY)) && !menu.visible) {
 			var unit: Unit = army.get(MapUtils.coordsToIndex(posX, posY));
@@ -314,14 +326,20 @@ class BattleState extends FlxTransitionableState {
 
 			cursor.hide();
 			combatDialog.hide();
-			actionDialog.show();
-			selectedUnit.status = UnitStatus.STATUS_MOVED;
+			inventoryDialog.show();
+			selectedUnit.status = UnitStatus.STATUS_ON_SELECT_WEAPON;
+			updateAttackRange(selectedUnit.equippedWeapon);
+		} else if (selectedUnit != null && (selectedUnit.status == UnitStatus.STATUS_ON_INVENTORY ||
+			selectedUnit.status == UnitStatus.STATUS_ON_SELECT_WEAPON)) {
 
-			drawAttackRange();
-		} else if (selectedUnit != null && selectedUnit.status == UnitStatus.STATUS_ON_INVENTORY) {
+			updateAttackRange();
+			if (unitsInAttackRange.length > 0)
+				actionDialog.enableEntry("Attack");
+			else
+				actionDialog.disableEntry("Attack");
+
 			inventoryDialog.hide();
 			actionDialog.show();
-
 			selectedUnit.status = UnitStatus.STATUS_MOVED;
 		} else if (menu.visible) {
 			menu.hide();
@@ -404,11 +422,17 @@ class BattleState extends FlxTransitionableState {
 			}
 		}
 
-		if (selectedUnit != null && selectedUnit.status == UnitStatus.STATUS_ON_INVENTORY) {
+		if (selectedUnit != null && (selectedUnit.status == UnitStatus.STATUS_ON_INVENTORY ||
+			selectedUnit.status == UnitStatus.STATUS_ON_SELECT_WEAPON)) {
 			if (goingUp)
 				inventoryDialog.prevItem();
 			else
 				inventoryDialog.nextItem();
+
+			if (selectedUnit.status == UnitStatus.STATUS_ON_SELECT_WEAPON) {
+				var selectedWeapon: Weapon = cast(inventoryDialog.getHighlighted(), Weapon);
+				updateAttackRange(selectedWeapon);
+			}
 		}
 
 		if (menu.visible) {
@@ -428,15 +452,12 @@ class BattleState extends FlxTransitionableState {
 
 	public function onMoveEnd(path: FlxPath) {
 		selectedUnit.moveElems(selectedUnit.pos.x, selectedUnit.pos.y);
-		//selectedUnit.hpBar.move(selectedUnit.pos.x * ViewPort.tileSize, (selectedUnit.pos.y + 1) * ViewPort.tileSize - 1);
 		selectedUnit.hpBar.showBar();
 		selectedUnit.status = UnitStatus.STATUS_MOVED;
-		unitsInAttackRange = getUnitsInAttackRange(selectedUnit);
+		updateAttackRange();
 
-		if (unitsInAttackRange.length > 0) {
+		if (unitsInAttackRange.length > 0)
 			actionDialog.enableEntry("Attack");
-			drawAttackRange();
-		}
 		else
 			actionDialog.disableEntry("Attack");
 
@@ -592,7 +613,7 @@ class BattleState extends FlxTransitionableState {
 		return unit;
 	}
 
-	public function getAttackRange(unit: Unit, reachableTiles: Set<TilePoint> = null): Set<TilePoint> {
+	public function getAttackRange(unit: Unit, reachableTiles: Set<TilePoint> = null, weapon: Weapon = null): Set<TilePoint> {
 		if (tilesInAttackRange == null) {
 			tilesInAttackRange = new Set<TilePoint>(TilePoint.equals);
 		}
@@ -602,18 +623,34 @@ class BattleState extends FlxTransitionableState {
 			reachableTiles.add(unit.pos);
 		}
 
+		var atkRangeMax = 0;
+		var atkRangeMin = 99;
+
+		if (weapon == null) {
+			for (item in unit.items) {
+				if (Weapon.isWeapon(item)) {
+					var w: Weapon = cast(item, Weapon);
+					atkRangeMax = Utils.max(atkRangeMax, w.maxRange);
+					atkRangeMin = Utils.min(atkRangeMin, w.minRange);
+				}
+			}
+		} else {
+			atkRangeMax = weapon.maxRange;
+			atkRangeMin = weapon.minRange;
+		}
+
 		tilesInAttackRange.clear();
 
 		for (tile in reachableTiles.getAll()) {
-			for (i in -unit.atkRangeMax ... unit.atkRangeMax + 1) {
-				for (j in -unit.atkRangeMax ... unit.atkRangeMax + 1) {
+			for (i in -1 * atkRangeMax ... atkRangeMax + 1) {
+				for (j in -1 * atkRangeMax ... atkRangeMax + 1) {
 					var tileIndex = MapUtils.pointToIndex(tile);
 
 					if (!army.exists(tileIndex) || TilePoint.equals(tile, selectedUnit.pos)) {
 						var distance = Utils.abs(i) + Utils.abs(j);
 						var newTile: TilePoint = new TilePoint(tile.x + i, tile.y + j);
 
-						if (distance <= unit.atkRangeMax && distance >= unit.atkRangeMin &&
+						if (distance <= atkRangeMax && distance >= atkRangeMin &&
 							newTile.x >= 0 && newTile.x < level.width && newTile.y >= 0 &&
 							newTile.y < level.height && !reachableTiles.contains(newTile)) {
 
@@ -627,8 +664,8 @@ class BattleState extends FlxTransitionableState {
 		return tilesInAttackRange;
 	}
 
-	public function getUnitsInAttackRange(unit: Unit): Array<Unit> {
-		var tilesInRange = getAttackRange(unit);
+	public function getUnitsInAttackRange(unit: Unit, weapon: Weapon = null): Array<Unit> {
+		var tilesInRange = getAttackRange(unit, weapon);
 		var enemiesInRange = new Array<Unit>();
 
 		for (tile in tilesInRange.getAll()) {
@@ -638,5 +675,15 @@ class BattleState extends FlxTransitionableState {
 		}
 
 		return enemiesInRange;
+	}
+
+	public function updateAttackRange(weapon: Weapon = null) {
+		unitsInAttackRange = getUnitsInAttackRange(selectedUnit, weapon);
+
+		if (unitsInAttackRange.length > 0) {
+			drawAttackRange();
+		} else {
+			Utils.clearSpriteGroup(attackRange);
+		}
 	}
 }
