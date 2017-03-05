@@ -10,6 +10,7 @@ import flixel.group.FlxGroup;
 import flixel.tile.FlxTilemap;
 
 import entities.Unit;
+import entities.Item;
 import entities.Weapon;
 import utils.MapUtils;
 import utils.Data;
@@ -91,11 +92,15 @@ class Level extends TiledMap {
 		unit.hpBar.currentValue = unit.os.hp;
 		unit.hpBar.updateParams();
 
-		var weaponList: String = object.custom.get("weapons");
-		for (weaponType in weaponList.split(";")) {
-			unit.items.push(createWeapon(weaponType));
-			if (unit.equippedWeapon == null)
-				unit.equipWeapon(cast(unit.items[unit.items.length - 1], Weapon));
+		var itemList: String = object.custom.get("items");
+		for (itemType in itemList.split(";")) {
+			if (Reflect.hasField(Data.getInstance().weaponList, itemType)) {
+				unit.items.push(createWeapon(itemType));
+				if (unit.equippedWeapon == null)
+					unit.equipWeapon(cast(unit.items[unit.items.length - 1], Weapon));
+			} else if (Reflect.hasField(Data.getInstance().itemList, itemType)) {
+				unit.items.push(createItem(itemType));
+			}
 		}
 
 		return unit;
@@ -120,6 +125,21 @@ class Level extends TiledMap {
 		weapon.sprite.loadGraphic(Reflect.field(weaponData, "gfx-path"), 16, 16);
 
 		return weapon;
+	}
+
+	private static function createItem(itemType: String): Item {
+		var itemData: Dynamic = Reflect.field(Data.getInstance().itemList, itemType);
+		var item = new Item(0, 0);
+
+		item.name = Reflect.field(itemData, "name");
+		item.type = Reflect.field(itemData, "type");
+		item.maxUses = Reflect.field(itemData, "uses");
+		item.currentUses = item.maxUses;
+		item.power = Reflect.field(itemData, "power");
+
+		item.sprite.loadGraphic(Reflect.field(itemData, "gfx-path"), 16, 16);
+
+		return item;
 	}
 
 	public static function obtainTileSet(map: TiledMap, layer: TiledLayer): TiledTileSet {

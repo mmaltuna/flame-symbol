@@ -53,18 +53,13 @@ class BattleDialog extends FlxTypedGroup<FlxSprite> {
 		vpY = 0;
 		x = 0;
 		y = 0;
-
-		init();
+		bgX = 0;
+		bgY = 0;
 
 		moveToQuadrant(this.quadrant);
 
 		originalX = x;
 		originalY = y;
-	}
-
-	public function init() {
-		bgX = x;
-		bgY = y;
 	}
 
 	public function loadBackground(path: String, width: Int, height: Int) {}

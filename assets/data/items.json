@@ -1,0 +1,17 @@
+{
+	"vulnerary": {
+		"name": "Vulnerary",
+		"type": "hp-recovery",
+		"power": 10,
+		"uses": 3,
+		"gfx-path": "assets/images/items/vulnerary.png"
+	},
+
+	"elixir": {
+		"name": "Elixir",
+		"type": "hp-recovery",
+		"power": 99,
+		"uses": 3,
+		"gfx-path": "assets/images/items/elixir.png"
+	}
+}

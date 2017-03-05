@@ -116,7 +116,7 @@ class BattleState extends FlxTransitionableState {
 		actionDialog = new ActionBattleDialog(BattleDialog.QUADRANT_TOP_RIGHT, ["Attack", "Items", "Wait"]);
 		add(actionDialog);
 
-		inventoryDialog = new InventoryDialog(BattleDialog.QUADRANT_TOP_RIGHT, []);
+		inventoryDialog = new InventoryDialog(BattleDialog.QUADRANT_TOP_RIGHT);
 		add(inventoryDialog);
 
 		combatDialog = new CombatBattleDialog(BattleDialog.QUADRANT_TOP_RIGHT);
@@ -235,7 +235,7 @@ class BattleState extends FlxTransitionableState {
 
 				case "Items":
 					actionDialog.hide();
-					inventoryDialog.setItems(selectedUnit.items);
+					inventoryDialog.setUnit(selectedUnit);
 					inventoryDialog.show();
 
 					selectedUnit.status = UnitStatus.STATUS_ON_INVENTORY;
@@ -250,6 +250,9 @@ class BattleState extends FlxTransitionableState {
 				battleHud.hide();
 				onWait();
 			});
+
+		} else if (selectedUnit != null && selectedUnit.status == UnitStatus.STATUS_ON_INVENTORY) {
+			inventoryDialog.select();
 
 		} else if (selectedUnit == null && army.exists(MapUtils.coordsToIndex(posX, posY)) && !menu.visible) {
 			var unit: Unit = army.get(MapUtils.coordsToIndex(posX, posY));

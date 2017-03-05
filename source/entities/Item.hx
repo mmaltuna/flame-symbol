@@ -4,6 +4,7 @@ class Item extends Entity {
 
 	public var maxUses: Int;
 	public var currentUses: Int;
+	public var power: Int;
 
 	public var name: String;
 	public var type: String;

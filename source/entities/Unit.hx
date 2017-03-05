@@ -104,19 +104,28 @@ class Unit extends Entity {
 	}
 
 	public function useItem(item: Item) {
-		// TODO: check syntax
-		trace("Type.getClass(item) = " + Type.getClass(item));
-		if (true) {
-			equipWeapon(cast(item, Weapon));
-		} else {
-
-		}
+		var itemClass: String = Type.getClassName(Type.getClass(item));
+		if (itemClass == "entities.Item") {
+			trace(item.name + " is an item");
+		} else if (itemClass == "entities.Weapon") {
+		   equipWeapon(cast(item, Weapon));
+	   }
 	}
 
 	public function equipWeapon(weapon: Weapon) {
+		if (equippedWeapon != null)
+			equippedWeapon.setEquipped(false);
+
 		equippedWeapon = weapon;
 		atkRangeMin = weapon.minRange;
 		atkRangeMax = weapon.maxRange;
+
+		var index: Int = items.indexOf(weapon);
+		if (index >= 0) {
+			items.splice(index, 1);
+			items.insert(0, weapon);
+			weapon.setEquipped(true);
+		}
 	}
 
 	public function select(): Bool {

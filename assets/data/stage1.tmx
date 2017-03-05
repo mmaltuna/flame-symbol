@@ -1344,6 +1344,7 @@
    <properties>
     <property name="def" type="int" value="6"/>
     <property name="hp" type="int" value="28"/>
+    <property name="items" value="sword-iron;axe-iron"/>
     <property name="lck" type="int" value="5"/>
     <property name="mgc" type="int" value="2"/>
     <property name="mov" type="int" value="5"/>
@@ -1351,13 +1352,13 @@
     <property name="skl" type="int" value="10"/>
     <property name="spd" type="int" value="7"/>
     <property name="str" type="int" value="8"/>
-    <property name="weapons" value="sword-iron;axe-iron"/>
    </properties>
   </object>
   <object id="73" name="Pfers" type="Knight" x="336" y="208" width="16" height="16">
    <properties>
     <property name="def" type="int" value="6"/>
     <property name="hp" type="int" value="28"/>
+    <property name="items" value="sword-iron;lance-iron;axe-iron;bow-iron"/>
     <property name="lck" type="int" value="5"/>
     <property name="mgc" type="int" value="2"/>
     <property name="mov" type="int" value="5"/>
@@ -1365,13 +1366,13 @@
     <property name="skl" type="int" value="10"/>
     <property name="spd" type="int" value="7"/>
     <property name="str" type="int" value="8"/>
-    <property name="weapons" value="sword-iron;lance-iron;axe-iron;bow-iron"/>
    </properties>
   </object>
   <object id="74" name="Peferovu" type="Knight" x="368" y="208" width="16" height="16">
    <properties>
     <property name="def" type="int" value="6"/>
     <property name="hp" type="int" value="28"/>
+    <property name="items" value="bow-iron;vulnerary;elixir"/>
     <property name="lck" type="int" value="5"/>
     <property name="mgc" type="int" value="2"/>
     <property name="mov" type="int" value="5"/>
@@ -1379,7 +1380,6 @@
     <property name="skl" type="int" value="10"/>
     <property name="spd" type="int" value="7"/>
     <property name="str" type="int" value="8"/>
-    <property name="weapons" value="bow-iron"/>
    </properties>
   </object>
  </objectgroup>
@@ -1388,6 +1388,7 @@
    <properties>
     <property name="def" type="int" value="3"/>
     <property name="hp" type="int" value="27"/>
+    <property name="items" value="axe-iron"/>
     <property name="lck" type="int" value="5"/>
     <property name="mgc" type="int" value="2"/>
     <property name="mov" type="int" value="6"/>
@@ -1395,13 +1396,13 @@
     <property name="skl" type="int" value="8"/>
     <property name="spd" type="int" value="8"/>
     <property name="str" type="int" value="10"/>
-    <property name="weapons" value="axe-iron"/>
    </properties>
   </object>
   <object id="75" name="RoRó" type="Fighter" x="272" y="111" width="16" height="16">
    <properties>
     <property name="def" type="int" value="3"/>
     <property name="hp" type="int" value="26"/>
+    <property name="items" value="sword-iron"/>
     <property name="lck" type="int" value="5"/>
     <property name="mgc" type="int" value="2"/>
     <property name="mov" type="int" value="6"/>
@@ -1409,13 +1410,13 @@
     <property name="skl" type="int" value="8"/>
     <property name="spd" type="int" value="7"/>
     <property name="str" type="int" value="10"/>
-    <property name="weapons" value="sword-iron"/>
    </properties>
   </object>
   <object id="76" name="Papa-Ró" type="Fighter" x="271" y="157.5" width="16" height="16">
    <properties>
     <property name="def" type="int" value="3"/>
     <property name="hp" type="int" value="26"/>
+    <property name="items" value="lance-iron"/>
     <property name="lck" type="int" value="5"/>
     <property name="mgc" type="int" value="2"/>
     <property name="mov" type="int" value="6"/>
@@ -1423,7 +1424,6 @@
     <property name="skl" type="int" value="8"/>
     <property name="spd" type="int" value="20"/>
     <property name="str" type="int" value="10"/>
-    <property name="weapons" value="lance-iron"/>
    </properties>
   </object>
  </objectgroup>

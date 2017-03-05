@@ -20,8 +20,8 @@ class Entity extends FlxTypedGroup<FlxSprite> {
 	}
 
 	public function move(newX: Int, newY: Int) {
-		var offsetX: Int = newX - x;
-		var offsetY: Int = newY - y;
+		var offsetX: Int = newX - Std.int(sprite.x);
+		var offsetY: Int = newY - Std.int(sprite.y);
 
 		for (member in members) {
 			member.x += offsetX;

@@ -1,5 +1,8 @@
 package entities;
 
+import flixel.FlxSprite;
+import utils.MapUtils;
+
 class Weapon extends Item {
 
 	public var might: Int;
@@ -12,8 +15,19 @@ class Weapon extends Item {
 
 	public var rank: Int;		// 5 = E, 4 = D, 3 = C, 2 = B, 1 = A, 0 = S
 
+	private var equippedBadge: FlxSprite;
+
 	public function new(x: Int, y: Int) {
 		super(x, y);
+
+		equippedBadge = new FlxSprite(x + ViewPort.tileSize - 6, y + ViewPort.tileSize - 7);
+		equippedBadge.loadGraphic("assets/images/ui/hud-equipped.png", 6, 7);
+		equippedBadge.visible = false;
+		add(equippedBadge);
+	}
+
+	public function setEquipped(equipped: Bool) {
+		equippedBadge.visible = equipped;
 	}
 
 	public static function getDamageBonus(weaponA: Weapon, weaponB: Weapon): Int {

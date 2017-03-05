@@ -6,6 +6,7 @@ import flixel.FlxObject;
 import flixel.util.FlxColor;
 
 import entities.Item;
+import entities.Unit;
 import utils.Utils;
 
 class InventoryDialog extends BattleDialog {
@@ -17,17 +18,17 @@ class InventoryDialog extends BattleDialog {
 
 	private static var bgPath: String = "assets/images/ui/bg-inventory.png";
 
+	private var unit: Unit;
 	private var selected: Int;
-	private var items: Array<Item>;
 	private var itemNames: Array<FlxText>;
 	private var remainingUses: Array<FlxText>;
-	private var enabledEntries: Array<String>;
+	private var enabledEntries: Array<Bool>;
 	private var arrow: FlxSprite;
 
 	private var width: Int;
 	private var height: Int;
 
-	public function new(quadrant: Int, items: Array<Item>) {
+	public function new(quadrant: Int) {
 		width = 96;
 		height = 72;
 
@@ -35,10 +36,9 @@ class InventoryDialog extends BattleDialog {
 
 		itemNames = new Array<FlxText>();
 		remainingUses = new Array<FlxText>();
-		enabledEntries = new Array<String>();
+		enabledEntries = new Array<Bool>();
 
 		loadBackground(bgPath, width, height);
-		setItems(items);
 
 		arrow = new FlxSprite(x, y);
 		arrow.loadGraphic("assets/images/ui/arrow.png", true, 12, 12);
@@ -74,7 +74,7 @@ class InventoryDialog extends BattleDialog {
 	}
 
 	private function highlight(pos: Int) {
-		if (pos >= 0 && pos < enabledEntries.length) {
+		if (pos >= 0 && pos < unit.items.length) {
 			if (arrow.facing == FlxObject.RIGHT)
 				arrow.x = vpX + x - 12;
 			else
@@ -85,71 +85,39 @@ class InventoryDialog extends BattleDialog {
 	}
 
 	public function nextItem() {
-		var newPos = (selected + 1) % enabledEntries.length;
+		var newPos = (selected + 1) % unit.items.length;
 		highlight(newPos);
 	}
 
 	public function prevItem() {
 		var newPos = selected - 1;
 		if (newPos == -1)
-			newPos = enabledEntries.length - 1;
+			newPos = unit.items.length - 1;
 
 		highlight(newPos);
 	}
 
-	public function select(): String {
-		return enabledEntries[selected];
+	public function select() {
+		var item: Item = unit.items[selected];
+		if (enabledEntries[selected]) {
+			unit.useItem(item);
+			refresh();
+			highlight(0);
+		}
 	}
 
 	override public function show() {
 		highlight(0);
-		selected = 0;
 		super.show();
 	}
 
-	public function enableEntry(entry: String) {
-		var entryIndex = 99;
-		var index = 0;
-
-		while (index < itemNames.length) {
-			if (itemNames[index].text == entry && !itemNames[index].alive) {
-				entryIndex = index;
-				itemNames[index].revive();
-				enabledEntries.insert(index, entry);
-			}
-
-			if (index > entryIndex) {
-				itemNames[index].y += lineHeight;
-			}
-
-			index++;
-		}
-
+	public function setUnit(unit: Unit) {
+		this.unit = unit;
+		refresh();
 		highlight(0);
 	}
 
-	public function disableEntry(entry: String) {
-		var entryIndex = 99;
-		var index = 0;
-
-		while (index < itemNames.length) {
-			if (itemNames[index].text == entry && itemNames[index].alive) {
-				entryIndex = index;
-				itemNames[index].kill();
-				enabledEntries.remove(entry);
-			}
-
-			if (index > entryIndex) {
-				itemNames[index].y -= lineHeight;
-			}
-
-			index++;
-		}
-
-		highlight(0);
-	}
-
-	public function setItems(items: Array<Item>) {
+	public function refresh() {
 		var i: Int = 0;
 		while (i < members.length) {
 			var member = members[i];
@@ -160,17 +128,13 @@ class InventoryDialog extends BattleDialog {
 			}
 		}
 
-		this.items = items;
 		Utils.clearTextArray(itemNames);
 		Utils.clearTextArray(remainingUses);
 		enabledEntries.splice(0, enabledEntries.length);
 
-		var bgX = background.x;
-		var bgY = background.y;
-
 		var index = 0;
-		for (item in items) {
-			enabledEntries.push(item.type);
+		for (item in unit.items) {
+			enabledEntries.push(true);
 
 			var itemText = new FlxText(bgX + marginLeft, bgY + marginTopText + index * lineHeight, item.name);
 			itemText.setFormat("assets/fonts/font-pixel-7.ttf", 16, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
@@ -178,20 +142,18 @@ class InventoryDialog extends BattleDialog {
 			add(itemText);
 
 			var usesText = new FlxText(bgX + marginLeft + 56, bgY + marginTopText + index * lineHeight,
-				Std.string(item.currentUses));
-			usesText.setFormat("assets/fonts/font-pixel-7.ttf", 16, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+				12, Std.string(item.currentUses));
 			usesText.alignment = FlxTextAlign.RIGHT;
+			usesText.setFormat("assets/fonts/font-pixel-7.ttf", 16, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 			remainingUses.push(usesText);
 			add(usesText);
 
-			item.sprite.x = Std.int(bgX + 4);
-			item.sprite.y = Std.int(bgY + marginTop + index * lineHeight);
-			item.visible = true;
-			add(item.sprite);
+			item.move(Std.int(bgX + 4), Std.int(bgY + marginTop + index * lineHeight));
+			for (member in item.members) {
+				add(member);
+			}
 
 			index++;
 		}
-
-		highlight(0);
 	}
 }

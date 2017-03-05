@@ -12,6 +12,7 @@ class Data {
 
 	private function new() {
 		weaponList = loadJSONFromFile("assets/data/weapons.json");
+		itemList = loadJSONFromFile("assets/data/items.json");
 	}
 
 	public static function getInstance(): Data {
